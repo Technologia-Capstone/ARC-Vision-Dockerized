@@ -1,0 +1,512 @@
+<!--
+  Comprehensive photo library and search interface for A.R.C. Vision.
+  Displays paginated event photograph grids with responsive filtering, multi-photo selection, and metadata inspection.
+  Handles quick asset flagging, bulk downloads, and full-screen preview lightboxes.
+-->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Photo Library - A.R.C. Vision</title>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A.R.C Vision Photo Library">
+
+    <link rel="stylesheet" href="css/styles.css?v=20260801_99" type="text/css">
+
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inclusive+Sans:ital@0;1&family=Inknut+Antiqua:wght@500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Material Symbols -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+
+    <link rel="shortcut icon" href="media/favicon.ico">
+    <link rel="icon" href="media/favicon.ico">
+
+    <script>
+        (function() {
+            try {
+                var nav = performance.getEntriesByType('navigation');
+                var isReload = (nav && nav.length > 0) ? (nav[0].type === 'reload') : (window.performance && window.performance.navigation && window.performance.navigation.type === 1);
+                var isFresh = !sessionStorage.getItem('app_session_active');
+                if (isReload || isFresh) {
+                    var currentUrl = window.location.pathname.split('/').pop() + window.location.search + window.location.hash;
+                    sessionStorage.setItem('post_loading_redirect', currentUrl || 'index.html');
+                    window.location.replace('loading.html');
+                }
+            } catch (e) {}
+        })();
+    </script>
+</head>
+
+
+
+
+<body>
+
+    <!-- ============================================================
+         SIDEBAR
+    ============================================================= -->
+
+    <aside class="sidebar">
+
+        <!-- Sidebar Header -->
+        <div class="sidebar-header">
+
+            <img src="media/Logo.png" alt="A.R.C. Vision Logo" class="logo">
+
+            <h1>A.R.C. Vision</h1>
+
+            <p>
+                AUTOMATED RECOGNITION AND<br>
+                CLUSTERING
+            </p>
+
+        </div>
+
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar-nav">
+
+            <ul>
+
+                <li>
+                    <a href="index.html">
+                        <span class="material-symbols-outlined">dashboard</span>
+                        Dashboard
+                    </a>
+                </li>
+
+                <li>
+                    <a href="photo_library.html" class="active">
+                        <span class="material-symbols-outlined">photo_library</span>
+                        Photo Library
+                    </a>
+                </li>
+
+                <li>
+                    <a href="processing.html">
+                        <span class="material-symbols-outlined">memory</span>
+                        Processing
+                    </a>
+                </li>
+
+                <li>
+                    <a href="clusters.html">
+                        <span class="material-symbols-outlined">groups</span>
+                        Clusters
+                    </a>
+                </li>
+
+                <li>
+                    <a href="results.html">
+                        <span class="material-symbols-outlined">analytics</span>
+                        Diagnostics
+                    </a>
+                </li>
+
+            </ul>
+
+        </nav>
+
+        <!-- Sidebar Action Buttons -->
+        <div class="sidebar-actions">
+
+            <button id="uploadPhotosBtn">
+                <span class="material-symbols-outlined">upload</span>
+                Upload Photos
+            </button>
+
+
+            <button id="exportPhotosBtn">
+                <span class="material-symbols-outlined">download</span>
+                Export
+            </button>
+
+        </div>
+
+    </aside>
+
+    <!-- ============================================================
+         MAIN CONTENT
+    ============================================================= -->
+
+    <main class="main-content">
+
+        <!-- ============================================================
+             TOP HEADER & TAB NAV
+        ============================================================= -->
+
+        <header class="top-header library-header">
+
+            <div class="header-nav-container">
+
+                <h2 class="header-title"><a href="index.html" style="color: inherit;">A.R.C. Vision</a></h2>
+
+                <nav class="top-tab-nav">
+                    <a href="javascript:void(0);" class="tab-link active" data-tab="recent">Recent</a>
+                    <a href="javascript:void(0);" class="tab-link" data-tab="flagged">Flagged</a>
+                </nav>
+
+            </div>
+
+        </header>
+
+        <!-- ============================================================
+             PHOTO LIBRARY CONTENT AREA
+        ============================================================= -->
+
+        <section class="photo-library-section">
+
+            <div class="library-container">
+
+                <!-- LEFT COLUMN: PHOTO LIBRARY MAIN -->
+                <div class="library-main">
+
+                    <!-- Title & View Mode Controls Header -->
+                    <div class="library-top-bar">
+
+                        <div class="library-title-group">
+                            <h1 class="library-title">Photo Library</h1>
+                            <span class="photo-count" id="photoCountLabel">0 Photos</span>
+                        </div>
+
+                        <div class="view-toggle-group">
+                            <button class="select-toggle-btn" id="librarySelectBtn" title="Select Multiple Photos" aria-label="Select Multiple Photos">
+                                <span class="material-symbols-outlined">check_box</span>
+                                <span class="btn-text">Select</span>
+                            </button>
+                            <button class="view-btn active" id="gridViewBtn" title="Grid View" aria-label="Grid View">
+                                <span class="material-symbols-outlined">grid_view</span>
+                            </button>
+                        </div>
+
+                    </div>
+
+                    <!-- BULK SELECTION ACTION TOOLBAR -->
+                    <div class="bulk-action-bar" id="bulkActionBar" style="display: none;">
+                        <div class="bulk-action-info">
+                            <span class="material-symbols-outlined icon-blue">check_circle</span>
+                            <span class="bulk-selected-count" id="bulkSelectedCountText">0 Selected</span>
+                        </div>
+                        <div class="bulk-action-buttons">
+                            <button type="button" class="bulk-btn primary" id="bulkMoveBtn">
+                                <span class="material-symbols-outlined">drive_file_move</span>
+                                <span>Move to Face Folder</span>
+                            </button>
+                            <button type="button" class="bulk-btn danger" id="bulkFlagBtn">
+                                <span class="material-symbols-outlined">flag</span>
+                                <span>Flag</span>
+                            </button>
+                            <button type="button" class="bulk-btn warning" id="bulkUnflagBtn">
+                                <span class="material-symbols-outlined">outlined_flag</span>
+                                <span>Unflag</span>
+                            </button>
+                            <button type="button" class="bulk-btn secondary" id="bulkSelectAllBtn">
+                                <span class="material-symbols-outlined">select_all</span>
+                                <span>Select All</span>
+                            </button>
+                            <button type="button" class="bulk-btn text-only" id="bulkCancelBtn">
+                                <span class="material-symbols-outlined">close</span>
+                                <span>Cancel</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Filter & Sort Bar -->
+                    <div class="filter-bar">
+
+                        <div class="filter-dropdowns">
+
+                            <!-- Event Filter -->
+                            <div class="custom-dropdown" id="eventDropdown">
+                                <button class="dropdown-trigger" type="button">
+                                    <span class="trigger-text">Filter by Event</span>
+                                    <span class="material-symbols-outlined">expand_more</span>
+                                </button>
+                                <div class="dropdown-menu" id="eventDropdownMenu">
+                                    <div class="dropdown-item active" data-filter="all">All Events</div>
+                                </div>
+                            </div>
+
+                            <!-- Date Range Filter -->
+                            <div class="custom-dropdown" id="dateDropdown">
+                                <button class="dropdown-trigger" type="button">
+                                    <span class="material-symbols-outlined dropdown-icon">calendar_today</span>
+                                    <span class="trigger-text">Date Range</span>
+                                    <span class="material-symbols-outlined">expand_more</span>
+                                </button>
+                                <div class="dropdown-menu">
+                                    <div class="dropdown-item active" data-filter="all">All Time</div>
+                                    <div class="dropdown-item" data-filter="today">Today</div>
+                                    <div class="dropdown-item" data-filter="week">Past Week</div>
+                                    <div class="dropdown-item" data-filter="month">Past Month</div>
+                                </div>
+                            </div>
+
+                            <div class="filter-divider"></div>
+
+                        </div>
+
+                        <!-- Sort Toggle -->
+                        <div class="sort-container">
+                            <span class="sort-label">SORT BY:</span>
+                            <button class="sort-btn" id="sortToggleBtn" type="button">
+                                <span>Date Added</span>
+                                <span class="material-symbols-outlined sort-icon">arrow_downward</span>
+                            </button>
+                        </div>
+
+                    </div>
+
+                    <!-- Photo Grid Container -->
+                    <div class="photo-grid" id="photoGrid">
+                        <!-- Card items rendered by JS -->
+                    </div>
+
+                </div>
+
+                <!-- RIGHT COLUMN: SIDEBAR WIDGETS -->
+                <aside class="library-sidebar">
+
+                    <!-- WIDGET 1: CLASSIFICATION -->
+                    <div class="sidebar-widget classification-widget">
+
+                        <h3 class="widget-title"> CLASSIFICATION</h3>
+
+                        <div class="classification-list">
+
+                            <!-- People Category -->
+                            <div class="classification-group">
+                                <div class="classification-item parent">
+                                    <div class="item-left">
+                                        <span class="material-symbols-outlined icon-blue">face</span>
+                                        <span class="item-label bold">People (Clusters)</span>
+                                    </div>
+                                    <span class="item-count bold" id="aiPeopleCount">0</span>
+                                </div>
+
+                                <div class="sub-items">
+                                    <div class="classification-item sub">
+                                        <span class="item-label">Clustered Assets</span>
+                                        <span class="item-count" id="aiClusteredCount">0</span>
+                                    </div>
+
+                                    <div class="classification-item sub">
+                                        <span class="item-label">Flagged Assets</span>
+                                        <span class="item-count" id="aiFlaggedCount">0</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- WIDGET 2: ENGINE PERFORMANCE -->
+                    <div class="sidebar-widget status-widget">
+
+                        <h3 class="widget-title">ENGINE PERFORMANCE</h3>
+
+                        <div class="engine-card">
+
+                            <div class="engine-card-header"
+                                style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:10px;">
+                                <span class="engine-name">Accuracy</span>
+                                <span class="engine-percent" id="perfAccuracy"
+                                    style="color:#10B981; font-weight:700; text-align:right; white-space:nowrap;">96.5%</span>
+                            </div>
+
+                            <div class="engine-card-header"
+                                style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:10px;">
+                                <span class="engine-name">Processing Speed</span>
+                                <span class="engine-percent" id="perfSpeed"
+                                    style="color:#3B82F6; font-weight:700; text-align:right; white-space:nowrap;">18
+                                    img/s</span>
+                            </div>
+
+                            <div class="engine-card-header"
+                                style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:10px;">
+                                <span class="engine-name">Memory Usage</span>
+                                <span class="engine-percent" id="perfMemory"
+                                    style="color:#F59E0B; font-weight:700; text-align:right; white-space:nowrap;">45%</span>
+                            </div>
+
+
+                            <div class="progress-container engine-progress">
+                                <div class="progress-bar" id="perfMemoryBar" style="width: 45%;"></div>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </aside>
+
+            </div>
+
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="footer">
+            <img src="media/Footer.png" alt="Technologia Team" class="footer-image">
+            <p>&copy; Copyright 2026, Developed by <strong>Technologia</strong></p>
+        </footer>
+
+    </main>
+
+    <!-- PHOTO LIGHTBOX MODAL -->
+    <div class="lightbox-modal" id="lightboxModal">
+        <div class="lightbox-overlay" id="lightboxOverlay"></div>
+        <div class="lightbox-content">
+            <button class="lightbox-close" id="lightboxClose" aria-label="Close modal">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+            <div class="lightbox-body">
+                <div class="lightbox-image-container">
+                    <button class="lightbox-nav-btn lightbox-prev-btn" id="lightboxPrevBtn" aria-label="Previous Image">
+                        <span class="material-symbols-outlined">chevron_left</span>
+                    </button>
+
+                    <div class="lightbox-img-wrapper" id="lightboxImgWrapper">
+                        <span class="material-symbols-outlined placeholder-icon">image</span>
+                    </div>
+
+                    <button class="lightbox-nav-btn lightbox-next-btn" id="lightboxNextBtn" aria-label="Next Image">
+                        <span class="material-symbols-outlined">chevron_right</span>
+                    </button>
+
+                    <div class="lightbox-counter-badge" id="lightboxCounterBadge">
+                        <span class="material-symbols-outlined" style="font-size:14px;">collections</span>
+                        <span id="lightboxCounterText">1 of 1</span>
+                    </div>
+                </div>
+                <div class="lightbox-info">
+                    <div class="lightbox-header">
+                        <span class="card-badge badge-clustered" id="modalBadge">CLUSTERED</span>
+                        <h3 id="modalTitle">Asset</h3>
+                    </div>
+                    <div class="lightbox-details">
+                        <div class="detail-row">
+                            <span>Status:</span>
+                            <strong id="modalStatus">Clustered</strong>
+                        </div>
+                        <div class="detail-row">
+                            <span>Original Location:</span>
+                            <strong id="modalLocation"
+                                style="font-size:0.8rem; word-break:break-all;">input/photo.jpg</strong>
+                        </div>
+                        <div class="detail-row">
+                            <span>Date Added:</span>
+                            <strong id="modalDate">2026-07-22</strong>
+                        </div>
+                        <div class="detail-row">
+                            <span>Face Cluster:</span>
+                            <strong id="modalFaceCluster">Unknown</strong>
+                        </div>
+                    </div>
+                    <div class="lightbox-actions">
+                        <button class="btn-primary" id="modalFlagBtn" style="width:100%; padding:12px; font-size:0.95rem; font-weight:600; border-radius:8px; display:flex; align-items:center; justify-content:center; gap:8px;">
+                            <span class="material-symbols-outlined">flag</span>
+                            <span id="modalFlagText">Flag Asset</span>
+                        </button>
+                        <button class="action-btn-outline" id="modalMoveBtn" style="width:100%; border:1.5px solid #3B82F6; color:#3B82F6; border-radius:8px; padding:12px; background:transparent; font-size:0.95rem; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;">
+                            <span class="material-symbols-outlined">drive_file_move</span>
+                            Move to Face Folder
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- INTERACTIVE MOVE TO FACE CLUSTER MODAL -->
+    <div class="custom-modal-overlay" id="moveClusterModalOverlay"
+            style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.82); backdrop-filter: blur(8px); z-index: 99999; align-items: center; justify-content: center;">
+            <div class="custom-modal-box move-cluster-modal-box">
+
+                <!-- MODAL HEADER -->
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px;">
+                    <div>
+                        <h3
+                            style="margin: 0; font-size: 1.35rem; font-weight: 700; color: #3B82F6; display: flex; align-items: center; gap: 10px;">
+                            <span class="material-symbols-outlined" style="font-size: 28px;">drive_file_move</span> Move to Face Cluster
+                        </h3>
+                        <p style="font-size: 0.88rem; color: #9CA3AF; margin: 6px 0 0 0;">Compare reference photo on the left with target face clusters on the right:</p>
+                    </div>
+                    <button id="closeMoveClusterModalBtn"
+                        style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #9CA3AF; cursor: pointer; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease;">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+
+                <!-- SIDE BY SIDE PANELS -->
+                <div class="move-modal-panels-container">
+                    
+                    <!-- LEFT PANEL: REFERENCE IMAGE BEING MOVED -->
+                    <div class="move-modal-left-panel">
+                        <div class="move-modal-left-header">
+                            <div class="move-modal-left-title">
+                                <span class="material-symbols-outlined" style="color: #3B82F6; font-size: 20px;">image</span> Reference Photo
+                            </div>
+                            <span id="moveModalImageStatus" class="card-badge badge-flagged">FLAGGED</span>
+                        </div>
+
+                        <div class="move-modal-ref-wrapper">
+                            <img id="moveModalRefImg" src="" alt="Reference Photo Being Moved" class="move-modal-ref-img">
+                        </div>
+
+                        <div class="move-modal-ref-meta">
+                            <div class="move-modal-ref-filename" id="moveModalRefFilename">Photo_001.jpg</div>
+                            <div id="moveModalRefEvent" style="font-size: 0.78rem; color: #64748B;">Event: Main Event</div>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT PANEL: TARGET FACE CLUSTERS SELECTION -->
+                    <div class="move-modal-right-panel">
+                        <div style="position: relative;">
+                            <span class="material-symbols-outlined"
+                                style="position: absolute; left: 14px; top: 12px; color: #64748B; font-size: 20px;">search</span>
+                            <input type="text" id="moveClusterSearchInput"
+                                placeholder="Search face cluster name, person number..."
+                                style="width: 100%; background: #0F172A; border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; padding: 12px 14px 12px 42px; color: #fff; font-size: 0.95rem; outline: none; transition: border-color 0.2s ease;">
+                        </div>
+
+                        <div id="moveClusterList">
+                            <!-- Populated dynamically by script.js -->
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- MODAL FOOTER BUTTONS -->
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.1);">
+                    <button id="createNewClusterBtn"
+                        style="background: #10B981; color: #fff; border: none; padding: 10px 18px; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background 0.2s ease;">
+                        <span class="material-symbols-outlined" style="font-size: 20px;">add</span> Create New Face Cluster
+                    </button>
+                    <button id="cancelMoveClusterModalBtn"
+                        style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); color: #D1D5DB; padding: 10px 20px; border-radius: 8px; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: background 0.2s ease;">
+                        Cancel
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- AVATAR HOVER PREVIEW POPUP -->
+        <div id="avatarHoverPreviewTooltip" class="avatar-hover-preview-tooltip">
+            <div class="avatar-hover-preview-card">
+                <img id="avatarHoverPreviewImg" src="" alt="Face Preview">
+                <div id="avatarHoverPreviewTitle" class="avatar-hover-preview-title"></div>
+            </div>
+        </div>
+
+        <script src="scripts/script.js?v=20260813_03"></script>
+
+</body>
+
+</html>

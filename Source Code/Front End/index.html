@@ -1,0 +1,376 @@
+<!--
+  Dashboard overview page for A.R.C. Vision.
+  Displays aggregate system metrics, active events overview, storage telemetry, and quick navigation actions.
+  Handles top-level statistics presentation and event workspace routing.
+-->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Dashboard - A.R.C. Vision</title>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A.R.C Vision">
+
+    <link rel="stylesheet" href="css/styles.css?v=20260725_05" type="text/css">
+
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inclusive+Sans:ital@0;1&family=Inknut+Antiqua:wght@500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Material Symbols -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+
+    <link rel="shortcut icon" href="media/favicon.ico">
+    <link rel="icon" href="media/favicon.ico">
+
+    <script>
+        (function() {
+            try {
+                var nav = performance.getEntriesByType('navigation');
+                var isReload = (nav && nav.length > 0) ? (nav[0].type === 'reload') : (window.performance && window.performance.navigation && window.performance.navigation.type === 1);
+                var isFresh = !sessionStorage.getItem('app_session_active');
+                if (isReload || isFresh) {
+                    var currentUrl = window.location.pathname.split('/').pop() + window.location.search + window.location.hash;
+                    sessionStorage.setItem('post_loading_redirect', currentUrl || 'index.html');
+                    window.location.replace('loading.html');
+                }
+            } catch (e) {}
+        })();
+    </script>
+</head>
+
+
+
+
+<body>
+
+    <!-- ============================================================
+         SIDEBAR
+    ============================================================= -->
+
+    <aside class="sidebar">
+
+        <!-- Sidebar Header -->
+        <div class="sidebar-header">
+
+            <img src="media/Logo.png" alt="A.R.C. Vision Logo" class="logo">
+
+            <h1>A.R.C. Vision</h1>
+
+            <p>
+                AUTOMATED RECOGNITION AND<br>
+                CLUSTERING
+            </p>
+
+        </div>
+
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar-nav">
+
+            <ul>
+
+                <li>
+                    <a href="index.html" class="active">
+                        <span class="material-symbols-outlined">dashboard</span>
+                        Dashboard
+                    </a>
+                </li>
+
+                <li>
+                    <a href="photo_library.html">
+                        <span class="material-symbols-outlined">photo_library</span>
+                        Photo Library
+                    </a>
+                </li>
+
+                <li>
+                    <a href="processing.html">
+                        <span class="material-symbols-outlined">memory</span>
+                        Processing
+                    </a>
+                </li>
+
+                <li>
+                    <a href="clusters.html">
+                        <span class="material-symbols-outlined">groups</span>
+                        Clusters
+                    </a>
+                </li>
+
+                <li>
+                    <a href="results.html">
+                        <span class="material-symbols-outlined">analytics</span>
+                        Diagnostics
+                    </a>
+                </li>
+
+            </ul>
+
+        </nav>
+
+        <!-- Sidebar Action Buttons -->
+        <div class="sidebar-actions">
+
+            <button id="uploadPhotosBtn">
+                <span class="material-symbols-outlined">upload</span>
+                Upload Photos
+            </button>
+
+            <button id="exportPhotosBtn">
+                <span class="material-symbols-outlined">download</span>
+                Export
+            </button>
+
+        </div>
+
+
+    </aside>
+
+    <!-- ============================================================
+     MAIN CONTENT
+============================================================ -->
+
+    <main class="main-content">
+
+        <!-- ============================================================
+         TOP HEADER
+    ============================================================= -->
+
+        <header class="top-header">
+
+            <h2>A.R.C. Vision</h2>
+
+        </header>
+
+        <!-- ============================================================
+         DASHBOARD
+    ============================================================= -->
+
+        <section class="dashboard">
+
+            <!-- ============================================================
+             SYSTEM OVERVIEW
+        ============================================================= -->
+
+            <section class="system-overview">
+
+                <h1>System Overview</h1>
+
+            </section>
+
+            <!-- ============================================================
+             STATISTICS
+        ============================================================= -->
+
+            <section class="stats-container">
+
+                <!-- TOTAL IMAGES -->
+
+                <div class="stats-card">
+
+                    <div class="card-header">
+
+                        <h4>TOTAL IMAGES</h4>
+
+                        <span class="material-symbols-outlined">
+                            photo_library
+                        </span>
+
+                    </div>
+
+                    <div class="card-body">
+
+                        <h2 id="totalAssets" class="stat-number-blue">0</h2>
+
+                        <p>
+                            <span id="assetsIncrease" class="stat-green-indicator">+0</span> newly added
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <!-- TOTAL CLUSTERS -->
+
+                <div class="stats-card">
+
+                    <div class="card-header">
+
+                        <h4>TOTAL CLUSTERS</h4>
+
+                        <span class="material-symbols-outlined">
+                            groups
+                        </span>
+
+                    </div>
+
+                    <div class="card-body">
+
+                        <h2 id="clusterCount" class="stat-number-blue">0</h2>
+
+                        <p>
+                            <span id="clusterIncrease" class="stat-green-indicator">+0</span> newly added
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <!-- CONFIDENCE SCORE -->
+
+                <div class="stats-card">
+
+                    <div class="card-header">
+
+                        <h4>CONFIDENCE SCORE</h4>
+
+                        <span class="material-symbols-outlined">
+                            verified
+                        </span>
+
+                    </div>
+
+                    <div class="card-body">
+
+                        <h2 id="confidenceScore" class="stat-number-blue">96.5%</h2>
+
+                        <p style="color: #9CA3AF; font-size: 0.82rem;">
+                            Average confidence of all clustering results
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- ============================================================
+             DASHBOARD BOTTOM
+        ============================================================= -->
+
+            <section class="dashboard-bottom">
+
+                <!-- ============================================================
+     EVENT QUEUE & PROCESSING ACTIVITY
+============================================================ -->
+
+                <section class="activity-section">
+
+                    <div class="activity-header" style="display:flex; justify-space-between; align-items:center;">
+                        <h3>Event Queue & Processing Activity</h3>
+                        <span class="currently-processing-tag" id="currentProcessingBanner"
+                            style="font-size:0.85rem; font-weight:600; color:#3B82F6; background:rgba(59,130,246,0.1); padding:4px 10px; border-radius:6px;">
+                            Processing: None
+                        </span>
+                    </div>
+
+                    <div class="activity-list" id="activityList">
+                        <!-- Dynamically populated from /api/events by script.js -->
+                        <div style="padding: 20px; text-align: center; color: #6B7280;">
+                            <p>Scanning local event folders...</p>
+                        </div>
+                    </div>
+
+                </section>
+
+                <!-- ============================================================
+     CLUSTERING STATUS
+============================================================ -->
+
+                <aside class="status-section">
+
+                    <!-- Status Header -->
+                    <div class="status-header">
+
+                        <h3>Clustering Status</h3>
+
+                    </div>
+
+                    <!-- ARC Reactor Animation -->
+                    <div class="reactor-container">
+
+                        <video class="reactor-video" src="media/Intro Logo.mp4?v=20260813_04" autoplay muted defaultmuted loop playsinline webkit-playsinline disablePictureInPicture controlsList="nodownload nofullscreen noremoteplayback" disableRemotePlayback oncontextmenu="return false;" style="pointer-events: none;">
+
+                            <source src="media/Intro Logo.mp4?v=20260813_04" type="video/mp4">
+
+                            Your browser does not support HTML5 video.
+
+                        </video>
+
+                    </div>
+
+                    <!-- System Information -->
+                    <div class="system-status">
+
+                        <div class="status-row">
+
+                            <span>Engine Status</span>
+
+                            <span class="status-online" id="engineStatusTag">Running</span>
+
+                        </div>
+
+                        <div class="status-row">
+
+                            <span>Recognition AI</span>
+
+                            <span class="status-online">Online</span>
+
+                        </div>
+
+                        <div class="status-row">
+
+                            <span>Clustering Engine</span>
+
+                            <span class="status-online">Active</span>
+
+                        </div>
+
+                        <div class="status-row">
+
+                            <span>Last Synchronization</span>
+
+                            <span id="lastSync">23 July 2026 10:50 PM</span>
+
+                        </div>
+
+                    </div>
+
+                </aside>
+
+            </section>
+
+        </section>
+
+        <!-- ============================================================
+     FOOTER
+============================================================ -->
+
+        <footer class="footer">
+
+            <img src="media/Footer.png" alt="Technologia Team" class="footer-image">
+
+            <p>
+
+                &copy; Copyright 2026, Developed by <strong>Technologia</strong>
+
+            </p>
+
+        </footer>
+
+    </main>
+
+
+
+    <script src="scripts/script.js?v=20260813_03"></script>
+
+
+
+
+</body>
+
+</html>

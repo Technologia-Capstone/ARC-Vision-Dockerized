@@ -1,0 +1,38 @@
+# ============================================================
+# Automated School Event Photo Clustering System
+# Requirements
+# ============================================================
+
+# Deep Learning
+torch>=2.0.0
+torchvision>=0.15.0
+
+# Face Detection (MTCNN)
+facenet-pytorch>=2.5.3
+
+# Face Embedding (ArcFace via InsightFace)
+insightface>=0.7.3
+onnxruntime>=1.16.0,<1.20.0      # >=1.20 requires VS 2022 C++ runtime DLL on Windows
+
+# Computer Vision
+opencv-python>=4.8.0
+Pillow>=10.0.0
+
+# Numerical Computing
+numpy>=1.24.0
+scipy>=1.11.0
+
+# Machine Learning (DBSCAN, Silhouette Score)
+scikit-learn>=1.3.0
+
+# Progress Bars
+tqdm>=4.66.0
+
+# Visualization (debugging only)
+matplotlib>=3.7.0
+
+# REST API & Web Server
+fastapi>=0.100.0
+uvicorn>=0.22.0
+python-multipart>=0.0.6
+

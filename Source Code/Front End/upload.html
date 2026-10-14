@@ -1,0 +1,244 @@
+<!--
+  Asset upload interface for A.R.C. Vision.
+  Provides drag-and-drop batch photo uploads and directory selection for new or existing event batches.
+  Handles upload queue preparation, progress monitoring, and ingestion dispatching.
+-->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Upload Assets - A.R.C. Vision</title>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A.R.C Vision Asset Upload">
+
+    <link rel="stylesheet" href="css/styles.css" type="text/css">
+
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inclusive+Sans:ital@0;1&family=Inknut+Antiqua:wght@500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Material Symbols -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+
+    <link rel="shortcut icon" href="media/favicon.ico">
+    <link rel="icon" href="media/favicon.ico">
+
+    <script>
+        (function() {
+            try {
+                var nav = performance.getEntriesByType('navigation');
+                var isReload = (nav && nav.length > 0) ? (nav[0].type === 'reload') : (window.performance && window.performance.navigation && window.performance.navigation.type === 1);
+                var isFresh = !sessionStorage.getItem('app_session_active');
+                if (isReload || isFresh) {
+                    var currentUrl = window.location.pathname.split('/').pop() + window.location.search + window.location.hash;
+                    sessionStorage.setItem('post_loading_redirect', currentUrl || 'index.html');
+                    window.location.replace('loading.html');
+                }
+            } catch (e) {}
+        })();
+    </script>
+</head>
+
+
+
+
+<body>
+
+    <!-- Hidden File Inputs for Native Upload Functionality -->
+    <input type="file" id="fileInput" multiple accept="image/*,.raw,.tiff" style="display: none;">
+    <input type="file" id="folderInput" webkitdirectory directory style="display: none;">
+
+    <!-- ============================================================
+         SIDEBAR
+    ============================================================= -->
+
+    <aside class="sidebar">
+
+        <!-- Sidebar Header -->
+        <div class="sidebar-header">
+
+            <img src="media/Logo.png" alt="A.R.C. Vision Logo" class="logo">
+
+            <h1>A.R.C. Vision</h1>
+
+            <p>
+                AUTOMATED RECOGNITION AND<br>
+                CLUSTERING
+            </p>
+
+        </div>
+
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar-nav">
+
+            <ul>
+
+                <li>
+                    <a href="index.html">
+                        <span class="material-symbols-outlined">dashboard</span>
+                        Dashboard
+                    </a>
+                </li>
+
+                <li>
+                    <a href="photo_library.html">
+                        <span class="material-symbols-outlined">photo_library</span>
+                        Photo Library
+                    </a>
+                </li>
+
+                <li>
+                    <a href="processing.html">
+                        <span class="material-symbols-outlined">memory</span>
+                        Processing
+                    </a>
+                </li>
+
+                <li>
+                    <a href="clusters.html">
+                        <span class="material-symbols-outlined">groups</span>
+                        Clusters
+                    </a>
+                </li>
+
+                <li>
+                    <a href="results.html">
+                        <span class="material-symbols-outlined">analytics</span>
+                        Diagnostics
+                    </a>
+                </li>
+
+            </ul>
+
+        </nav>
+
+        <!-- Sidebar Action Buttons -->
+        <div class="sidebar-actions">
+
+            <button id="uploadPhotosBtn" class="active-upload-btn">
+                <span class="material-symbols-outlined">upload</span>
+                Upload Photos
+            </button>
+
+
+            <button id="exportPhotosBtn">
+                <span class="material-symbols-outlined">download</span>
+                Export
+            </button>
+
+        </div>
+
+    </aside>
+
+    <!-- ============================================================
+         MAIN CONTENT
+    ============================================================= -->
+
+    <main class="main-content">
+
+        <!-- ============================================================
+             TOP HEADER
+        ============================================================= -->
+
+        <header class="top-header">
+
+            <h2>A.R.C. Vision</h2>
+
+        </header>
+
+        <!-- ============================================================
+             UPLOAD MAIN CONTENT SECTION
+        ============================================================= -->
+
+        <section class="upload-section">
+
+            <!-- CARD 1: NEURAL ANALYSIS STATUS CARD -->
+            <div class="neural-analysis-card" style="display: flex; align-items: center; justify-content: space-between; gap: 20px;">
+
+                <!-- Live Animated SVG Arc Ring -->
+                <div class="neural-arc-container" style="position: relative; width: 80px; height: 80px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+                    <svg viewBox="0 0 100 100" style="width: 100%; height: 100%; animation: spinArc 8s linear infinite;">
+                        <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(59,130,246,0.15)" stroke-width="6"/>
+                        <circle cx="50" cy="50" r="42" fill="none" stroke="#3B82F6" stroke-width="6" stroke-dasharray="180 80" stroke-linecap="round"/>
+                        <circle cx="50" cy="50" r="32" fill="none" stroke="#10B981" stroke-width="4" stroke-dasharray="100 60" stroke-linecap="round" style="animation: spinArcRev 5s linear infinite; transform-origin: center;"/>
+                    </svg>
+                    <span class="material-symbols-outlined" style="position: absolute; color: #3B82F6; font-size: 28px; animation: pulseGlow 2s ease-in-out infinite;">psychology</span>
+                </div>
+
+                <div class="analysis-info" style="flex: 1;">
+                    <h2>A.R.C. Analysis</h2>
+                    <p id="uploadStatusSubtext">Automated Recognition and Clustering engine ready</p>
+
+                    <div class="analysis-progress-container">
+                        <div class="analysis-progress-bar" id="analysisProgressBar" style="width: 0%;"></div>
+                        <span class="optimized-tag" id="optimizedTag">IDLE</span>
+                    </div>
+                </div>
+
+                <div class="analysis-action">
+                    <button class="stop-processing-btn" id="stopProcessingBtn">Stop Processing</button>
+                </div>
+
+            </div>
+
+
+            <!-- CARD 2: DRAG & DROP VISION ASSETS ZONE -->
+            <div class="drop-zone-card" id="dropZone">
+
+                <!-- Compatible Formats Badge Tag -->
+                <div class="format-tag">
+                    A.R.C. COMPATIBLE: PNG, JPG, JPEG
+                </div>
+
+
+                <div class="drop-zone-content">
+
+                    <div class="upload-icon-box">
+                        <span class="material-symbols-outlined">upload_file</span>
+                    </div>
+
+                    <h2 class="drop-heading">Drag vision assets here</h2>
+
+                    <p class="drop-subheading">
+                        A.R.C. will immediately begin recognition and metadata clustering.
+                    </p>
+
+                    <div class="drop-action-buttons">
+                        <button class="btn-solid-dark" id="browseFilesBtn">Browse Files</button>
+                        <button class="btn-outline-dark" id="importFolderBtn">Import Folder</button>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- ============================================================
+             FOOTER
+        ============================================================= -->
+
+        <footer class="footer">
+
+            <img src="media/Footer.png" alt="Technologia Team" class="footer-image">
+
+            <p>
+
+                &copy; Copyright 2026, Developed by <strong>Technologia</strong>
+
+            </p>
+
+        </footer>
+
+    </main>
+
+    <script src="scripts/script.js?v=20260813_03"></script>
+
+
+
+</body>
+
+</html>

@@ -1,0 +1,590 @@
+<!--
+  Diagnostic telemetry and clustering quality analysis dashboard for A.R.C. Vision.
+  Visualizes intra-cluster cohesion, silhouette distributions, noise ratios, and feature fusion telemetry.
+  Handles audit report downloads in CSV/JSON formats and detailed mathematical breakdown tables.
+-->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Diagnostics - A.R.C. Vision</title>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A.R.C. Vision S.T.A.R.K. Telemetry & Clustering Diagnostics">
+
+    <link rel="stylesheet" href="css/styles.css?v=20260811_diag" type="text/css">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inclusive+Sans:ital@0;1&family=Inknut+Antiqua:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Material Symbols -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+
+    <link rel="shortcut icon" href="media/favicon.ico">
+    <link rel="icon" href="media/favicon.ico">
+
+    <script>
+        (function() {
+            try {
+                var nav = performance.getEntriesByType('navigation');
+                var isReload = (nav && nav.length > 0) ? (nav[0].type === 'reload') : (window.performance && window.performance.navigation && window.performance.navigation.type === 1);
+                var isFresh = !sessionStorage.getItem('app_session_active');
+                if (isReload || isFresh) {
+                    var currentUrl = window.location.pathname.split('/').pop() + window.location.search + window.location.hash;
+                    sessionStorage.setItem('post_loading_redirect', currentUrl || 'index.html');
+                    window.location.replace('loading.html');
+                }
+            } catch (e) {}
+        })();
+    </script>
+</head>
+
+<body>
+
+    <!-- ============================================================
+         SIDEBAR
+    ============================================================= -->
+    <aside class="sidebar">
+
+        <!-- Sidebar Header -->
+        <div class="sidebar-header">
+            <img src="media/Logo.png" alt="A.R.C. Vision Logo" class="logo">
+            <h1>A.R.C. Vision</h1>
+            <p>
+                AUTOMATED RECOGNITION AND<br>
+                CLUSTERING
+            </p>
+        </div>
+
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar-nav">
+            <ul>
+                <li>
+                    <a href="index.html">
+                        <span class="material-symbols-outlined">dashboard</span>
+                        Dashboard
+                    </a>
+                </li>
+                <li>
+                    <a href="photo_library.html">
+                        <span class="material-symbols-outlined">photo_library</span>
+                        Photo Library
+                    </a>
+                </li>
+                <li>
+                    <a href="processing.html">
+                        <span class="material-symbols-outlined">memory</span>
+                        Processing
+                    </a>
+                </li>
+                <li>
+                    <a href="clusters.html">
+                        <span class="material-symbols-outlined">groups</span>
+                        Clusters
+                    </a>
+                </li>
+                <li>
+                    <a href="results.html" class="active">
+                        <span class="material-symbols-outlined">analytics</span>
+                        Diagnostics
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Sidebar Action Buttons -->
+        <div class="sidebar-actions">
+            <button id="uploadPhotosBtn">
+                <span class="material-symbols-outlined">upload</span>
+                Upload Photos
+            </button>
+            <button id="exportPhotosBtn">
+                <span class="material-symbols-outlined">download</span>
+                Export
+            </button>
+        </div>
+
+    </aside>
+
+    <!-- ============================================================
+         MAIN CONTENT
+    ============================================================= -->
+    <main class="main-content">
+
+        <!-- TOP HEADER -->
+        <header class="top-header">
+            <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <h2>A.R.C. Vision</h2>
+                    <span class="stark-badge-pill" style="background: rgba(14, 165, 233, 0.12); color: #0284C7; border: 1px solid rgba(14, 165, 233, 0.3); font-size: 0.72rem; font-weight: 700; padding: 3px 10px; border-radius: 6px; letter-spacing: 0.06em; text-transform: uppercase;">
+                        A.R.C. Diagnostic Engine
+                    </span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 14px;">
+                    <div id="starkLivePulse" style="display: flex; align-items: center; gap: 8px; font-size: 0.8rem; font-weight: 600; color: #10B981; background: #ECFDF5; padding: 6px 14px; border-radius: 20px; border: 1px solid #A7F3D0;">
+                        <span class="stark-pulsing-dot" style="width: 8px; height: 8px; border-radius: 50%; background: #10B981; box-shadow: 0 0 8px #10B981; display: inline-block;"></span>
+                        <span id="starkEngineStatusText">DIAGNOSTICS ONLINE</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- DIAGNOSTICS & TELEMETRY SECTION -->
+        <section class="diagnostics-section" style="padding: 28px 32px 60px 32px; max-width: 1400px; margin: 0 auto;">
+
+            <!-- HEADER BAR & EVENT FILTER -->
+            <div class="diag-header-bar" style="display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; margin-bottom: 28px; flex-wrap: wrap;">
+                <div>
+                    <h1 style="font-size: 2rem; font-weight: 700; color: #0E2A52; margin: 0 0 6px 0; letter-spacing: -0.02em;">
+                        Clustering Telemetry & Diagnostic Reports
+                    </h1>
+                    <p style="font-size: 0.9rem; color: #64748B; margin: 0;">
+                        Quantitative performance readings, identity cohesion indices, and separation verification.
+                    </p>
+                </div>
+
+                <!-- Action & Selector Controls -->
+                <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                    <!-- Event Selection Dropdown -->
+                    <div class="custom-dropdown" id="diagEventDropdown" style="min-width: 220px; position: relative;">
+                        <button class="dropdown-trigger" id="diagEventTrigger" style="width: 100%; display: flex; align-items: center; justify-content: space-between; background: #FFFFFF; border: 1px solid #CBD5E1; padding: 10px 14px; border-radius: 10px; font-weight: 600; font-size: 0.85rem; color: #0F172A; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span class="material-symbols-outlined" style="font-size: 18px; color: #0284C7;">folder_special</span>
+                                <span class="trigger-text" id="diagEventTriggerText">All Events Overview</span>
+                            </div>
+                            <span class="material-symbols-outlined" style="font-size: 18px; color: #64748B;">expand_more</span>
+                        </button>
+                        <div class="dropdown-menu" id="diagEventDropdownMenu" style="position: absolute; top: calc(100% + 4px); left: 0; width: 100%; background: #FFFFFF; border: 1px solid #CBD5E1; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 50; max-height: 260px; overflow-y: auto; display: none;">
+                            <div class="dropdown-item active" data-event="all" style="padding: 10px 14px; font-size: 0.85rem; font-weight: 600; cursor: pointer; border-bottom: 1px solid #F1F5F9;">
+                                All Events Overview
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Live Refresh Button -->
+                    <button id="refreshDiagBtn" style="background: #FFFFFF; border: 1px solid #CBD5E1; color: #1E293B; padding: 9px 14px; border-radius: 10px; font-weight: 600; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); transition: all 0.2s;">
+                        <span class="material-symbols-outlined sync-icon" style="font-size: 18px; color: #0284C7;">sync</span>
+                        <span id="refreshBtnLabel">Refresh Telemetry</span>
+                    </button>
+
+                    <!-- Export Report Button -->
+                    <button id="exportDiagReportBtn" style="background: #0E2A52; border: 1px solid #0E2A52; color: #FFFFFF; padding: 9px 16px; border-radius: 10px; font-weight: 600; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(14,42,82,0.15); transition: all 0.2s;">
+                        <span class="material-symbols-outlined" style="font-size: 18px; color: #38BDF8;">file_download</span>
+                        Export Report
+                    </button>
+                </div>
+            </div>
+
+            <!-- EMPTY STATE CONTAINER (Hidden when reports exist) -->
+            <div id="diagEmptyState" style="display: none; width: 100%; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 16px; padding: 60px 30px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+                <div style="width: 80px; height: 80px; border-radius: 50%; background: #F0F9FF; border: 2px dashed #BAE6FD; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+                    <span class="material-symbols-outlined" style="font-size: 40px; color: #0284C7;">analytics</span>
+                </div>
+                <h3 style="font-size: 1.4rem; font-weight: 700; color: #0E2A52; margin-bottom: 8px;">No Clustering Telemetry Detected</h3>
+                <p style="font-size: 0.95rem; color: #64748B; max-width: 500px; margin: 0 auto;">
+                    Diagnostic metrics disappear automatically when events or clusters are deleted. Once photos are processed by the A.R.C. Vision recognition pipeline, comprehensive diagnostic telemetry will appear here automatically.
+                </p>
+            </div>
+
+            <!-- MAIN TELEMETRY CONTENT WRAPPER -->
+            <div id="diagMainContent">
+
+                <!-- S.T.A.R.K. EVENT METADATA SUMMARY BAR -->
+                <div style="background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); border-radius: 16px; padding: 22px 28px; margin-bottom: 28px; border: 1px solid rgba(59, 130, 246, 0.3); box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; color: #FFFFFF;">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+                            <span class="material-symbols-outlined" style="color: #38BDF8; font-size: 22px;">shield</span>
+                            <h3 id="diagActiveEventTitle" style="font-size: 1.3rem; font-weight: 700; color: #F8FAFC; margin: 0; letter-spacing: -0.01em;">
+                                Event Photos (All Batches)
+                            </h3>
+                            <span id="diagTimestampBadge" style="background: rgba(255,255,255,0.1); color: #94A3B8; font-size: 0.75rem; padding: 2px 8px; border-radius: 6px; font-family: 'JetBrains Mono', monospace;">
+                                SYNCED: --
+                            </span>
+                        </div>
+                        <p id="diagActiveEventSubtitle" style="font-size: 0.85rem; color: #94A3B8; margin: 0;">
+                            ArcFace (R100) + DBSCAN (Cosine Metric, &epsilon; = 0.42, min_samples = 2)
+                        </p>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 24px; flex-wrap: wrap;">
+                        <div style="text-align: right;">
+                            <div style="font-size: 0.75rem; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Total Images</div>
+                            <div id="metaTotalImages" style="font-size: 1.4rem; font-weight: 700; color: #38BDF8; font-family: 'JetBrains Mono', monospace;">0</div>
+                        </div>
+                        <div style="height: 36px; width: 1px; background: rgba(255,255,255,0.15);"></div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 0.75rem; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Detected Faces</div>
+                            <div id="metaTotalFaces" style="font-size: 1.4rem; font-weight: 700; color: #34D399; font-family: 'JetBrains Mono', monospace;">0</div>
+                        </div>
+                        <div style="height: 36px; width: 1px; background: rgba(255,255,255,0.15);"></div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 0.75rem; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Formed Clusters</div>
+                            <div id="metaTotalClusters" style="font-size: 1.4rem; font-weight: 700; color: #FBBF24; font-family: 'JetBrains Mono', monospace;">0</div>
+                        </div>
+                        <div style="height: 36px; width: 1px; background: rgba(255,255,255,0.15);"></div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 0.75rem; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Processing Time</div>
+                            <div id="metaProcTime" style="font-size: 1.4rem; font-weight: 700; color: #A78BFA; font-family: 'JetBrains Mono', monospace;">0.00s</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============================================================
+                     8 CORE METRICS TELEMETRY GRID
+                ============================================================= -->
+                <div style="margin-bottom: 32px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                        <h2 style="font-size: 1.25rem; font-weight: 700; color: #0E2A52; display: flex; align-items: center; gap: 8px;">
+                            <span class="material-symbols-outlined" style="color: #0284C7;">speed</span>
+                            Primary Clustering Performance Readings
+                        </h2>
+                        <span style="font-size: 0.8rem; font-weight: 600; color: #64748B;">8-Axis Core Telemetry</span>
+                    </div>
+
+                    <div class="metrics-hud-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px;">
+
+                        <!-- 1. ACCURACY -->
+                        <div class="hud-card" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 14px; padding: 20px 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); position: relative; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s;">
+                            <div style="position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #10B981, #059669);"></div>
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                <span style="font-size: 0.8rem; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.05em;">Accuracy</span>
+                                <span class="material-symbols-outlined" style="color: #10B981; font-size: 20px;">verified</span>
+                            </div>
+                            <div style="display: flex; align-items: baseline; gap: 4px; margin-bottom: 6px;">
+                                <span id="metricAccuracyVal" style="font-size: 2.2rem; font-weight: 800; color: #0E2A52; font-family: 'JetBrains Mono', monospace; letter-spacing: -0.03em;">--%</span>
+                            </div>
+                            <div style="height: 6px; width: 100%; background: #E2E8F0; border-radius: 3px; overflow: hidden; margin-bottom: 10px;">
+                                <div id="metricAccuracyBar" style="height: 100%; width: 0%; background: #10B981; border-radius: 3px; transition: width 0.8s ease;"></div>
+                            </div>
+                            <div style="font-size: 0.75rem; color: #64748B; line-height: 1.3;">
+                                Overall clustering purity & assignment fidelity.
+                            </div>
+                        </div>
+
+                        <!-- 2. PRECISION -->
+                        <div class="hud-card" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 14px; padding: 20px 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); position: relative; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s;">
+                            <div style="position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #0284C7, #0369A1);"></div>
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                <span style="font-size: 0.8rem; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.05em;">Precision</span>
+                                <span class="material-symbols-outlined" style="color: #0284C7; font-size: 20px;">target</span>
+                            </div>
+                            <div style="display: flex; align-items: baseline; gap: 4px; margin-bottom: 6px;">
+                                <span id="metricPrecisionVal" style="font-size: 2.2rem; font-weight: 800; color: #0E2A52; font-family: 'JetBrains Mono', monospace; letter-spacing: -0.03em;">--%</span>
+                            </div>
+                            <div style="height: 6px; width: 100%; background: #E2E8F0; border-radius: 3px; overflow: hidden; margin-bottom: 10px;">
+                                <div id="metricPrecisionBar" style="height: 100%; width: 0%; background: #0284C7; border-radius: 3px; transition: width 0.8s ease;"></div>
+                            </div>
+                            <div style="font-size: 0.75rem; color: #64748B; line-height: 1.3;">
+                                Identity purity ratio [TP / (TP + FP)].
+                            </div>
+                        </div>
+
+                        <!-- 3. RECALL -->
+                        <div class="hud-card" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 14px; padding: 20px 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); position: relative; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s;">
+                            <div style="position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #6366F1, #4F46E5);"></div>
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                <span style="font-size: 0.8rem; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.05em;">Recall</span>
+                                <span class="material-symbols-outlined" style="color: #6366F1; font-size: 20px;">all_inclusive</span>
+                            </div>
+                            <div style="display: flex; align-items: baseline; gap: 4px; margin-bottom: 6px;">
+                                <span id="metricRecallVal" style="font-size: 2.2rem; font-weight: 800; color: #0E2A52; font-family: 'JetBrains Mono', monospace; letter-spacing: -0.03em;">--%</span>
+                            </div>
+                            <div style="height: 6px; width: 100%; background: #E2E8F0; border-radius: 3px; overflow: hidden; margin-bottom: 10px;">
+                                <div id="metricRecallBar" style="height: 100%; width: 0%; background: #6366F1; border-radius: 3px; transition: width 0.8s ease;"></div>
+                            </div>
+                            <div style="font-size: 0.75rem; color: #64748B; line-height: 1.3;">
+                                Identity retrieval completeness [TP / (TP + FN)].
+                            </div>
+                        </div>
+
+                        <!-- 4. F1-SCORE (NEW) -->
+                        <div class="hud-card" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 14px; padding: 20px 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); position: relative; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s;">
+                            <div style="position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #0EA5E9, #0284C7);"></div>
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                <span style="font-size: 0.8rem; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.05em;">F1-Score</span>
+                                <span class="material-symbols-outlined" style="color: #0EA5E9; font-size: 20px;">balance</span>
+                            </div>
+                            <div style="display: flex; align-items: baseline; gap: 4px; margin-bottom: 6px;">
+                                <span id="metricF1Val" style="font-size: 2.2rem; font-weight: 800; color: #0E2A52; font-family: 'JetBrains Mono', monospace; letter-spacing: -0.03em;">--%</span>
+                            </div>
+                            <div style="height: 6px; width: 100%; background: #E2E8F0; border-radius: 3px; overflow: hidden; margin-bottom: 10px;">
+                                <div id="metricF1Bar" style="height: 100%; width: 0%; background: #0EA5E9; border-radius: 3px; transition: width 0.8s ease;"></div>
+                            </div>
+                            <div style="font-size: 0.75rem; color: #64748B; line-height: 1.3;">
+                                Harmonic balance of precision and recall.
+                            </div>
+                        </div>
+
+                        <!-- 5. THROUGHPUT (NEW) -->
+                        <div class="hud-card" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 14px; padding: 20px 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); position: relative; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s;">
+                            <div style="position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #F43F5E, #E11D48);"></div>
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                <span style="font-size: 0.8rem; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.05em;">Throughput</span>
+                                <span class="material-symbols-outlined" style="color: #F43F5E; font-size: 20px;">bolt</span>
+                            </div>
+                            <div style="display: flex; align-items: baseline; gap: 6px; margin-bottom: 6px;">
+                                <span id="metricThroughputVal" style="font-size: 2.2rem; font-weight: 800; color: #0E2A52; font-family: 'JetBrains Mono', monospace; letter-spacing: -0.03em;">--</span>
+                                <span style="font-size: 0.85rem; font-weight: 700; color: #64748B;">img/s</span>
+                            </div>
+                            <div style="height: 6px; width: 100%; background: #E2E8F0; border-radius: 3px; overflow: hidden; margin-bottom: 10px;">
+                                <div id="metricThroughputBar" style="height: 100%; width: 0%; background: #F43F5E; border-radius: 3px; transition: width 0.8s ease;"></div>
+                            </div>
+                            <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.75rem; color: #64748B; line-height: 1.3;">
+                                <span>Processing speed</span>
+                                <span id="metricThroughputFacesVal" style="font-family: 'JetBrains Mono', monospace; font-weight: 700; color: #E11D48;">-- faces/s</span>
+                            </div>
+                        </div>
+
+                        <!-- 6. MISCLASSIFICATION RATE -->
+                        <div class="hud-card" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 14px; padding: 20px 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); position: relative; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s;">
+                            <div style="position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #F59E0B, #D97706);"></div>
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                <span style="font-size: 0.8rem; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.05em;">Misclassification</span>
+                                <span class="material-symbols-outlined" style="color: #F59E0B; font-size: 20px;">error_outline</span>
+                            </div>
+                            <div style="display: flex; align-items: baseline; gap: 4px; margin-bottom: 6px;">
+                                <span id="metricMisclassVal" style="font-size: 2.2rem; font-weight: 800; color: #0E2A52; font-family: 'JetBrains Mono', monospace; letter-spacing: -0.03em;">--%</span>
+                            </div>
+                            <div style="height: 6px; width: 100%; background: #E2E8F0; border-radius: 3px; overflow: hidden; margin-bottom: 10px;">
+                                <div id="metricMisclassBar" style="height: 100%; width: 0%; background: #F59E0B; border-radius: 3px; transition: width 0.8s ease;"></div>
+                            </div>
+                            <div style="font-size: 0.75rem; color: #64748B; line-height: 1.3;">
+                                False assignment rate [1.0 - Accuracy].
+                            </div>
+                        </div>
+
+                        <!-- 7. ARI (ADJUSTED RAND INDEX) -->
+                        <div class="hud-card" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 14px; padding: 20px 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); position: relative; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s;">
+                            <div style="position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #8B5CF6, #7C3AED);"></div>
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                <span style="font-size: 0.8rem; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.05em;">ARI Score</span>
+                                <span class="material-symbols-outlined" style="color: #8B5CF6; font-size: 20px;">hub</span>
+                            </div>
+                            <div style="display: flex; align-items: baseline; gap: 4px; margin-bottom: 6px;">
+                                <span id="metricAriVal" style="font-size: 2.2rem; font-weight: 800; color: #0E2A52; font-family: 'JetBrains Mono', monospace; letter-spacing: -0.03em;">--</span>
+                            </div>
+                            <div style="height: 6px; width: 100%; background: #E2E8F0; border-radius: 3px; overflow: hidden; margin-bottom: 10px;">
+                                <div id="metricAriBar" style="height: 100%; width: 0%; background: #8B5CF6; border-radius: 3px; transition: width 0.8s ease;"></div>
+                            </div>
+                            <div style="font-size: 0.75rem; color: #64748B; line-height: 1.3;">
+                                Chance-adjusted Rand partition agreement.
+                            </div>
+                        </div>
+
+                        <!-- 8. NMI (NORMALIZED MUTUAL INFO) -->
+                        <div class="hud-card" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 14px; padding: 20px 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); position: relative; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s;">
+                            <div style="position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #EC4899, #DB2777);"></div>
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                <span style="font-size: 0.8rem; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.05em;">NMI Score</span>
+                                <span class="material-symbols-outlined" style="color: #EC4899; font-size: 20px;">scatter_plot</span>
+                            </div>
+                            <div style="display: flex; align-items: baseline; gap: 4px; margin-bottom: 6px;">
+                                <span id="metricNmiVal" style="font-size: 2.2rem; font-weight: 800; color: #0E2A52; font-family: 'JetBrains Mono', monospace; letter-spacing: -0.03em;">--</span>
+                            </div>
+                            <div style="height: 6px; width: 100%; background: #E2E8F0; border-radius: 3px; overflow: hidden; margin-bottom: 10px;">
+                                <div id="metricNmiBar" style="height: 100%; width: 0%; background: #EC4899; border-radius: 3px; transition: width 0.8s ease;"></div>
+                            </div>
+                            <div style="font-size: 0.75rem; color: #64748B; line-height: 1.3;">
+                                Normalized mutual information entropy gain.
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- ============================================================
+                     INTERACTIVE VISUAL GRAPHS SECTION
+                ============================================================= -->
+                <div style="margin-bottom: 32px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                        <h2 style="font-size: 1.25rem; font-weight: 700; color: #0E2A52; display: flex; align-items: center; gap: 8px;">
+                            <span class="material-symbols-outlined" style="color: #0284C7;">monitoring</span>
+                            Visual Diagnostics & Distribution Graphs
+                        </h2>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 20px;">
+
+                        <!-- GRAPH 1: S.T.A.R.K. Multi-Metric Radar Chart -->
+                        <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 16px; padding: 24px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); display: flex; flex-direction: column;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                                <div>
+                                    <h3 style="font-size: 1.05rem; font-weight: 700; color: #0E2A52; margin: 0 0 4px 0;">
+                                        8-Axis Diagnostic Radar Telemetry
+                                    </h3>
+                                    <p style="font-size: 0.8rem; color: #64748B; margin: 0;">Multi-dimensional envelope comparison</p>
+                                </div>
+                                <span class="material-symbols-outlined" style="color: #0284C7; font-size: 20px;">radar</span>
+                            </div>
+                            <div style="flex: 1; display: flex; align-items: center; justify-content: center; min-height: 280px; position: relative;">
+                                <canvas id="radarChartCanvas" width="360" height="280" style="max-width: 100%; height: auto;"></canvas>
+                            </div>
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 12px; font-size: 0.75rem; color: #64748B;">
+                                <span style="display: flex; align-items: center; gap: 6px;">
+                                    <span style="width: 10px; height: 10px; background: rgba(2,132,199,0.3); border: 2px solid #0284C7; border-radius: 2px;"></span>
+                                    Actual Report Reading
+                                </span>
+                                <span style="display: flex; align-items: center; gap: 6px;">
+                                    <span style="width: 10px; height: 10px; border: 1px dashed #94A3B8; border-radius: 2px;"></span>
+                                    Theoretical Max Benchmark
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- GRAPH 2: Intra-Cluster Cosine Similarity vs Epsilon -->
+                        <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 16px; padding: 24px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); display: flex; flex-direction: column;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                                <div>
+                                    <h3 style="font-size: 1.05rem; font-weight: 700; color: #0E2A52; margin: 0 0 4px 0;">
+                                        Intra-Cluster Similarity vs Threshold
+                                    </h3>
+                                    <p style="font-size: 0.8rem; color: #64748B; margin: 0;">Cohesion per identity vs DBSCAN &epsilon; limit (0.42)</p>
+                                </div>
+                                <span class="material-symbols-outlined" style="color: #10B981; font-size: 20px;">bar_chart</span>
+                            </div>
+                            <div style="flex: 1; display: flex; align-items: center; justify-content: center; min-height: 280px; position: relative;">
+                                <canvas id="similarityBarCanvas" width="480" height="280" style="max-width: 100%; height: auto;"></canvas>
+                            </div>
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 12px; font-size: 0.75rem; color: #64748B;">
+                                <span style="display: flex; align-items: center; gap: 6px;">
+                                    <span style="width: 10px; height: 10px; background: #10B981; border-radius: 2px;"></span>
+                                    Intra-Cluster Cosine Similarity
+                                </span>
+                                <span style="display: flex; align-items: center; gap: 6px;">
+                                    <span style="width: 12px; height: 2px; background: #EF4444;"></span>
+                                    DBSCAN Separation Threshold
+                                </span>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- ============================================================
+                     PER-CLUSTER AUDIT & QUALITY MATRIX TABLE
+                ============================================================= -->
+                <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 16px; padding: 24px; box-shadow: 0 2px 10px rgba(0,0,0,0.03);">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 14px;">
+                        <div>
+                            <h3 style="font-size: 1.15rem; font-weight: 700; color: #0E2A52; margin: 0 0 4px 0;">
+                                Event Cluster Breakdown & Cohesion Matrix
+                            </h3>
+                            <p style="font-size: 0.85rem; color: #64748B; margin: 0;">
+                                Detailed per-identity audit table with confidence ratings and detection counts.
+                            </p>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="text" id="clusterTableSearchInput" placeholder="Filter clusters..." style="padding: 8px 12px; border: 1px solid #CBD5E1; border-radius: 8px; font-size: 0.85rem; outline: none; width: 200px;">
+                        </div>
+                    </div>
+
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+                            <thead>
+                                <tr style="border-bottom: 2px solid #E2E8F0; color: #475569; font-weight: 700; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em;">
+                                    <th style="padding: 12px 14px;">Cluster Identity</th>
+                                    <th style="padding: 12px 14px;">Photos Count</th>
+                                    <th style="padding: 12px 14px;">Faces Count</th>
+                                    <th style="padding: 12px 14px;">Intra-Similarity</th>
+                                    <th style="padding: 12px 14px;">Avg Confidence</th>
+                                    <th style="padding: 12px 14px;">Cohesion Status</th>
+                                    <th style="padding: 12px 14px;">Images Preview</th>
+                                </tr>
+                            </thead>
+                            <tbody id="diagClusterTableBody">
+                                <!-- Populated dynamically by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- ============================================================
+             EXPORT DIAGNOSTICS MODAL
+        ============================================================= -->
+        <div id="diagExportModalOverlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center;">
+            <div style="background: #FFFFFF; border-radius: 16px; width: 90%; max-width: 520px; box-shadow: 0 25px 50px rgba(0,0,0,0.25); border: 1px solid #E2E8F0; overflow: hidden;">
+                <!-- Modal Header -->
+                <div style="background: #0E2A52; padding: 18px 24px; display: flex; align-items: center; justify-content: space-between; color: #FFFFFF;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span class="material-symbols-outlined" style="color: #38BDF8; font-size: 22px;">file_download</span>
+                        <h3 style="font-size: 1.15rem; font-weight: 700; margin: 0;">Export Telemetry & Diagnostics</h3>
+                    </div>
+                    <button id="closeDiagExportModalBtn" style="background: transparent; border: none; color: #94A3B8; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center;">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+
+                <!-- Modal Body -->
+                <div style="padding: 24px;">
+                    <!-- Step 1: Select Scope -->
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #0E2A52; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.04em;">
+                            1. Select Telemetry Scope
+                        </label>
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            <label style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border: 1px solid #CBD5E1; border-radius: 10px; cursor: pointer; background: #F8FAFC; font-size: 0.85rem; font-weight: 600; color: #1E293B;">
+                                <input type="radio" name="exportScopeRadio" value="all" checked style="accent-color: #0284C7;">
+                                <div>
+                                    <div>Full Summary Report (All Events)</div>
+                                    <div style="font-size: 0.75rem; color: #64748B; font-weight: 400;">Aggregates all processed event batches & global metrics.</div>
+                                </div>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border: 1px solid #CBD5E1; border-radius: 10px; cursor: pointer; background: #F8FAFC; font-size: 0.85rem; font-weight: 600; color: #1E293B;">
+                                <input type="radio" name="exportScopeRadio" value="selected" style="accent-color: #0284C7;">
+                                <div style="flex: 1;">
+                                    <div id="exportScopeSelectedLabel">Selected Event Results</div>
+                                    <div style="font-size: 0.75rem; color: #64748B; font-weight: 400;">Exports diagnostics for the currently viewed event.</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Select Format -->
+                    <div style="margin-bottom: 24px;">
+                        <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #0E2A52; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.04em;">
+                            2. Select Export Format
+                        </label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                            <label style="display: flex; align-items: center; gap: 8px; padding: 12px; border: 1px solid #CBD5E1; border-radius: 10px; cursor: pointer; background: #F8FAFC; font-size: 0.85rem; font-weight: 600; color: #1E293B;">
+                                <input type="radio" name="exportFormatRadio" value="json" checked style="accent-color: #0284C7;">
+                                <div>
+                                    <div>JSON Report (.json)</div>
+                                    <div style="font-size: 0.72rem; color: #64748B; font-weight: 400;">Complete raw audit data</div>
+                                </div>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; padding: 12px; border: 1px solid #CBD5E1; border-radius: 10px; cursor: pointer; background: #F8FAFC; font-size: 0.85rem; font-weight: 600; color: #1E293B;">
+                                <input type="radio" name="exportFormatRadio" value="csv" style="accent-color: #0284C7;">
+                                <div>
+                                    <div>Spreadsheet (.csv)</div>
+                                    <div style="font-size: 0.72rem; color: #64748B; font-weight: 400;">Excel-compatible tables</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Modal Actions -->
+                    <div style="display: flex; align-items: center; justify-content: flex-end; gap: 12px;">
+                        <button id="cancelDiagExportBtn" style="background: #F1F5F9; border: 1px solid #CBD5E1; color: #475569; padding: 10px 18px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer;">
+                            Cancel
+                        </button>
+                        <button id="confirmDiagExportBtn" style="background: #0E2A52; border: none; color: #FFFFFF; padding: 10px 22px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 8px rgba(14,42,82,0.2);">
+                            <span class="material-symbols-outlined" style="font-size: 18px;">download</span>
+                            Download File
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Global Application Scripts -->
+    <script src="scripts/script.js?v=20260813_03"></script>
+</body>
+
+</html>

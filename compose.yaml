@@ -1,0 +1,12 @@
+services:
+  arc-vision:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - "./Source Code/Back End/input:/app/input"
+      - "./Source Code/Back End/output:/app/output"
+      - "./Source Code/Back End/.models:/app/.models"
+    restart: unless-stopped

@@ -1,0 +1,218 @@
+<!--
+  Asynchronous ZIP compression and archive export interface for A.R.C. Vision.
+  Configures selective event or cluster archive packaging with live progress tracking and speed metrics.
+  Handles background ZIP generation monitoring and direct client archive downloads.
+-->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Exporting Clusters - A.R.C. Vision</title>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A.R.C. Vision Real-Time ZIP Export Engine">
+
+    <link rel="stylesheet" href="css/styles.css?v=20260802_export" type="text/css">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inclusive+Sans:ital@0;1&family=Inknut+Antiqua:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Material Symbols -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+
+    <link rel="shortcut icon" href="media/favicon.ico">
+    <link rel="icon" href="media/favicon.ico">
+
+    <script>
+        (function() {
+            try {
+                var nav = performance.getEntriesByType('navigation');
+                var isReload = (nav && nav.length > 0) ? (nav[0].type === 'reload') : (window.performance && window.performance.navigation && window.performance.navigation.type === 1);
+                var isFresh = !sessionStorage.getItem('app_session_active');
+                if (isReload || isFresh) {
+                    var currentUrl = window.location.pathname.split('/').pop() + window.location.search + window.location.hash;
+                    sessionStorage.setItem('post_loading_redirect', currentUrl || 'index.html');
+                    window.location.replace('loading.html');
+                }
+            } catch (e) {}
+        })();
+    </script>
+</head>
+
+<body>
+
+    <!-- ============================================================
+         SIDEBAR
+    ============================================================= -->
+    <aside class="sidebar">
+        <!-- Sidebar Header -->
+        <div class="sidebar-header">
+            <img src="media/Logo.png" alt="A.R.C. Vision Logo" class="logo">
+            <h1>A.R.C. Vision</h1>
+            <p>
+                AUTOMATED RECOGNITION AND<br>
+                CLUSTERING
+            </p>
+        </div>
+
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar-nav">
+            <ul>
+                <li>
+                    <a href="index.html">
+                        <span class="material-symbols-outlined">dashboard</span>
+                        Dashboard
+                    </a>
+                </li>
+                <li>
+                    <a href="photo_library.html">
+                        <span class="material-symbols-outlined">photo_library</span>
+                        Photo Library
+                    </a>
+                </li>
+                <li>
+                    <a href="processing.html">
+                        <span class="material-symbols-outlined">memory</span>
+                        Processing
+                    </a>
+                </li>
+                <li>
+                    <a href="clusters.html">
+                        <span class="material-symbols-outlined">groups</span>
+                        Clusters
+                    </a>
+                </li>
+                <li>
+                    <a href="results.html">
+                        <span class="material-symbols-outlined">analytics</span>
+                        Diagnostics
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Sidebar Action Buttons -->
+        <div class="sidebar-actions">
+            <button id="uploadPhotosBtn">
+                <span class="material-symbols-outlined">upload</span>
+                Upload Photos
+            </button>
+            <button id="exportPhotosBtn" class="active">
+                <span class="material-symbols-outlined">download</span>
+                Export
+            </button>
+        </div>
+    </aside>
+
+    <!-- ============================================================
+         MAIN CONTENT
+    ============================================================= -->
+    <main class="main-content">
+
+        <!-- TOP HEADER -->
+        <header class="top-header">
+            <h2>A.R.C. Vision Export Center</h2>
+        </header>
+
+        <!-- EXPORT CONTENT SECTION -->
+        <section class="processing-section" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: calc(100vh - 160px); width: 100%; max-width: 720px; margin: 0 auto; box-sizing: border-box;">
+
+            <!-- ARC REACTOR GRAPHIC & COMPRESSION CARD -->
+            <div class="processing-card export-main-card" style="width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 32px; position: relative; overflow: hidden; background: linear-gradient(145deg, #0F172A 0%, #1E293B 100%); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: 20px; box-shadow: 0 25px 50px rgba(0,0,0,0.6);">
+                
+                <!-- ARC Reactor Visual Container -->
+                <div class="arc-reactor-wrapper" style="position: relative; width: 230px; height: 230px; margin-bottom: 24px; display: flex; align-items: center; justify-content: center;">
+                    <!-- Pulse Glow Background -->
+                    <div class="reactor-pulse-glow" style="position: absolute; width: 250px; height: 250px; border-radius: 50%; background: radial-gradient(circle, rgba(6, 182, 212, 0.45) 0%, rgba(59, 130, 246, 0.15) 50%, rgba(0,0,0,0) 75%); animation: pulseEnergy 2s infinite ease-in-out;"></div>
+                    <!-- Rotating Tech Ring -->
+                    <div class="reactor-tech-ring" style="position: absolute; width: 230px; height: 230px; border-radius: 50%; border: 2px dashed rgba(6, 182, 212, 0.7); border-top-color: #3B82F6; animation: spinRing 8s linear infinite;"></div>
+                    <!-- Core ARC Reactor Video (Fills circle completely) -->
+                    <div style="width: 215px; height: 215px; border-radius: 50%; overflow: hidden; background: #000; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 40px rgba(6, 182, 212, 0.8); position: relative; z-index: 2; border: 2px solid rgba(6, 182, 212, 0.7);">
+                        <video class="reactor-video" src="media/Intro Logo.mp4?v=20260813_04" autoplay muted defaultmuted loop playsinline webkit-playsinline disablePictureInPicture controlsList="nodownload nofullscreen noremoteplayback" disableRemotePlayback oncontextmenu="return false;" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; pointer-events: none; transform: scale(1.15);">
+                            <source src="media/Intro Logo.mp4?v=20260813_04" type="video/mp4">
+                        </video>
+                    </div>
+                </div>
+
+                <!-- Export Header & Status -->
+                <div class="export-status-block" style="text-align: center; width: 100%; max-width: 650px;">
+                    <span class="card-label light" style="color: #38BDF8; letter-spacing: 2px; font-weight: 700; font-size: 0.85rem;">REAL-TIME ZIP COMPRESSION</span>
+                    <h2 id="exportStatusTitle" style="font-size: 1.8rem; margin: 8px 0 16px 0; font-family: 'Inknut Antiqua', Georgia, serif; color: #F8FAFC;">
+                        Compressing Event Photos ...
+                    </h2>
+
+                    <!-- Live Progress Bar -->
+                    <div class="export-progress-track" style="width: 100%; height: 16px; background: rgba(15, 23, 42, 0.8); border-radius: 10px; border: 1px solid rgba(59, 130, 246, 0.3); overflow: hidden; position: relative; margin-bottom: 12px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);">
+                        <div id="exportProgressFill" style="width: 0%; height: 100%; background: linear-gradient(90deg, #3B82F6 0%, #06B6D4 50%, #10B981 100%); transition: width 0.3s ease; box-shadow: 0 0 12px rgba(6, 182, 212, 0.8);"></div>
+                    </div>
+
+                    <!-- Progress Percentage & Sub-status -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.95rem; margin-bottom: 20px; color: #94A3B8;">
+                        <span id="exportCurrentFileText" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 75%;">Preparing file package...</span>
+                        <strong id="exportPercentCounter" style="font-size: 1.25rem; color: #38BDF8;">0%</strong>
+                    </div>
+
+                    <!-- Tech Stats Grid -->
+                    <div class="export-stats-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; padding: 18px; background: rgba(15, 23, 42, 0.6); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 24px;">
+                        <div class="stat-item" style="text-align: center;">
+                            <span style="font-size: 0.75rem; color: #64748B; text-transform: uppercase; letter-spacing: 1px;">PACKAGED</span>
+                            <h3 id="exportPackagedCount" style="margin: 4px 0 0 0; font-size: 1.2rem; color: #F1F5F9;">0 / 0</h3>
+                        </div>
+                        <div class="stat-item" style="text-align: center;">
+                            <span style="font-size: 0.75rem; color: #64748B; text-transform: uppercase; letter-spacing: 1px;">COMPRESSION SPEED</span>
+                            <h3 id="exportSpeedVal" style="margin: 4px 0 0 0; font-size: 1.2rem; color: #38BDF8;">0 img/s</h3>
+                        </div>
+                        <div class="stat-item" style="text-align: center;">
+                            <span style="font-size: 0.75rem; color: #64748B; text-transform: uppercase; letter-spacing: 1px;">STATUS</span>
+                            <h3 id="exportStateTag" style="margin: 4px 0 0 0; font-size: 1.2rem; color: #F59E0B;">Initializing</h3>
+                        </div>
+                    </div>
+
+                    <!-- Completion / Action Buttons -->
+                    <div class="export-actions-row" style="display: flex; gap: 16px; justify-content: center;">
+                        <button id="downloadZipAgainBtn" style="display: none; padding: 12px 24px; background: linear-gradient(135deg, #10B981 0%, #059669 100%); color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 0.95rem; cursor: pointer; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);">
+                            <span class="material-symbols-outlined">download</span>
+                            Download ZIP Again
+                        </button>
+                        <a href="index.html" style="padding: 12px 24px; background: rgba(51, 65, 85, 0.6); color: #F1F5F9; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; font-weight: 600; font-size: 0.95rem; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s ease;">
+                            <span class="material-symbols-outlined">dashboard</span>
+                            Return to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Keyframe Animations -->
+    <style>
+        @keyframes pulseEnergy {
+            0% { transform: scale(0.95); opacity: 0.4; }
+            50% { transform: scale(1.08); opacity: 0.85; }
+            100% { transform: scale(0.95); opacity: 0.4; }
+        }
+        @keyframes spinRing {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+
+    <!-- Modal Elements & Custom Modals Container -->
+    <div id="customModalOverlay" class="custom-modal-overlay" style="display: none;">
+        <div class="custom-modal-box">
+            <div class="custom-modal-header">
+                <h3 id="customModalTitle">Export Photos</h3>
+                <button id="customModalCloseBtn">&times;</button>
+            </div>
+            <div class="custom-modal-body" id="customModalBody"></div>
+            <div class="custom-modal-footer" id="customModalFooter"></div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="scripts/script.js?v=20260813_03"></script>
+</body>
+
+</html>

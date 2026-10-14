@@ -1,0 +1,344 @@
+<!--
+  Real-time pipeline monitoring and live logs interface for A.R.C. Vision.
+  Visualizes multi-stage clustering progress, throughput counters, memory usage, and live console streams.
+  Handles pipeline state tracking, stage progress bars, and pause/resume execution controls.
+-->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Processing - A.R.C. Vision</title>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A.R.C Vision Processing Pipeline">
+
+    <link rel="stylesheet" href="css/styles.css?v=20260725_22" type="text/css">
+
+
+
+
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inclusive+Sans:ital@0;1&family=Inknut+Antiqua:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Material Symbols -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+
+    <link rel="shortcut icon" href="media/favicon.ico">
+    <link rel="icon" href="media/favicon.ico">
+
+    <script>
+        (function() {
+            try {
+                var nav = performance.getEntriesByType('navigation');
+                var isReload = (nav && nav.length > 0) ? (nav[0].type === 'reload') : (window.performance && window.performance.navigation && window.performance.navigation.type === 1);
+                var isFresh = !sessionStorage.getItem('app_session_active');
+                if (isReload || isFresh) {
+                    var currentUrl = window.location.pathname.split('/').pop() + window.location.search + window.location.hash;
+                    sessionStorage.setItem('post_loading_redirect', currentUrl || 'index.html');
+                    window.location.replace('loading.html');
+                }
+            } catch (e) {}
+        })();
+    </script>
+</head>
+
+
+
+
+<body>
+
+    <!-- ============================================================
+         SIDEBAR
+    ============================================================= -->
+
+    <aside class="sidebar">
+
+        <!-- Sidebar Header -->
+        <div class="sidebar-header">
+
+            <img src="media/Logo.png" alt="A.R.C. Vision Logo" class="logo">
+
+            <h1>A.R.C. Vision</h1>
+
+            <p>
+                AUTOMATED RECOGNITION AND<br>
+                CLUSTERING
+            </p>
+
+        </div>
+
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar-nav">
+
+            <ul>
+
+                <li>
+                    <a href="index.html">
+                        <span class="material-symbols-outlined">dashboard</span>
+                        Dashboard
+                    </a>
+                </li>
+
+                <li>
+                    <a href="photo_library.html">
+                        <span class="material-symbols-outlined">photo_library</span>
+                        Photo Library
+                    </a>
+                </li>
+
+                <li>
+                    <a href="processing.html" class="active">
+                        <span class="material-symbols-outlined">memory</span>
+                        Processing
+                    </a>
+                </li>
+
+                <li>
+                    <a href="clusters.html">
+                        <span class="material-symbols-outlined">groups</span>
+                        Clusters
+                    </a>
+                </li>
+
+                <li>
+                    <a href="results.html">
+                        <span class="material-symbols-outlined">analytics</span>
+                        Diagnostics
+                    </a>
+                </li>
+
+            </ul>
+
+        </nav>
+
+        <!-- Sidebar Action Buttons -->
+        <div class="sidebar-actions">
+
+            <button id="uploadPhotosBtn">
+                <span class="material-symbols-outlined">upload</span>
+                Upload Photos
+            </button>
+
+
+            <button id="exportPhotosBtn">
+                <span class="material-symbols-outlined">download</span>
+                Export
+            </button>
+
+        </div>
+
+    </aside>
+
+    <!-- ============================================================
+         MAIN CONTENT
+    ============================================================= -->
+
+    <main class="main-content">
+
+        <!-- ============================================================
+             TOP HEADER
+        ============================================================= -->
+
+        <header class="top-header">
+
+            <h2>A.R.C. Vision</h2>
+
+        </header>
+
+        <!-- ============================================================
+             PROCESSING CONTENT SECTION
+        ============================================================= -->
+
+        <section class="processing-section">
+
+            <!-- ROW 1: STATUS OVERVIEW & BATCH PERFORMANCE -->
+            <div class="status-performance-row">
+
+                <!-- Current Status Overview Card -->
+                <div class="processing-card current-status-card">
+
+                    <div class="status-col main-status">
+                        <span class="card-label">CURRENT STATUS</span>
+                        <h2 class="status-heading" id="processingStatusHeading">A.R.C. Vision Active</h2>
+                        <p class="status-batch">Processing: <strong id="currentProcessingEvent" style="color:#3B82F6;">Main Event</strong></p>
+                    </div>
+
+                    <div class="card-v-divider"></div>
+
+                    <div class="status-col stat-col">
+                        <span class="card-label">FACES FOUND</span>
+                        <h2 class="stat-number" id="facesFoundValue">0</h2>
+                    </div>
+
+                    <div class="card-v-divider"></div>
+
+                    <div class="status-col stat-col">
+                        <span class="card-label">CLUSTERS CREATED</span>
+                        <h2 class="stat-number" id="clustersFormedValue">0</h2>
+                    </div>
+
+                    <div class="card-v-divider"></div>
+
+                    <div class="status-col stat-col">
+                        <span class="card-label">PROCESSED</span>
+                        <h2 class="stat-number" id="processedImagesValue" style="color:#10B981;">0</h2>
+                    </div>
+
+                    <div class="card-v-divider"></div>
+
+                    <div class="status-col stat-col">
+                        <span class="card-label">REMAINING</span>
+                        <h2 class="stat-number" id="remainingImagesValue" style="color:#F59E0B;">0</h2>
+                    </div>
+
+                </div>
+
+
+                <!-- Batch Performance Card -->
+                <div class="processing-card batch-performance-card">
+
+                    <span class="card-label light">ENGINE PERFORMANCE</span>
+
+                    <div class="throughput-row" style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                        <span>Processing Speed:</span>
+                        <strong id="throughputValue">18 images/sec</strong>
+                    </div>
+
+                    <div class="throughput-row" style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                        <span>Accuracy:</span>
+                        <strong id="accuracyValue" style="color:#10B981;">96%</strong>
+                    </div>
+
+                    <div class="throughput-row" style="display:flex; justify-content:space-between; margin-bottom:6px;">
+                        <span>Memory Usage:</span>
+                        <strong id="memoryValue" style="color:#3B82F6;">45%</strong>
+                    </div>
+
+                    <div class="throughput-row" style="display:flex; justify-content:space-between;">
+                        <span>Time Remaining:</span>
+                        <strong id="timeRemainingValue" style="color:#F59E0B;">00:00</strong>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- ROW 2: PROCESSING PIPELINE (SINGLE CLEAN PROGRESS BAR) -->
+            <div class="pipeline-container">
+
+                <h2 class="section-title">Uploading & Processing Progress</h2>
+
+                <div class="neural-analysis-card" style="margin-top: 16px;">
+                    <div class="analysis-info" style="width: 100%;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                            <span class="card-label" style="font-weight:700; color:#3B82F6;">LIVE PIPELINE PROGRESS</span>
+                            <span class="optimized-tag" id="stageUploadPct" style="font-size:1.1rem; font-weight:700; color:#10B981;">0%</span>
+                        </div>
+                        <div class="analysis-progress-container" style="width: 100%;">
+                            <div class="analysis-progress-bar" id="stageUploadFill" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ROW 3: IN-FLIGHT PREVIEW (4 WINDOWS) -->
+            <div class="preview-container">
+
+                <h2 class="section-title">In-Flight Image Preview</h2>
+
+                <div class="preview-grid" style="display:grid; grid-template-columns: repeat(4, 1fr); gap:16px;">
+
+                    <!-- Window 1: Detected / Clustered -->
+                    <div class="preview-card" style="aspect-ratio: 4/3; min-height: 240px; border-radius: 14px; background: #0F172A; position: relative; overflow: hidden;">
+                        <span class="preview-badge badge-detected" style="position:absolute; top:12px; left:12px; z-index:10; background:#10B981; color:white; font-size:0.75rem; padding:3px 10px; border-radius:4px; font-weight:700;">DETECTED</span>
+                        <span id="detectedConfidenceBadge" style="position:absolute; top:12px; right:12px; z-index:10; background:rgba(16,185,129,0.9); color:white; font-size:0.75rem; padding:3px 10px; border-radius:4px; font-weight:700; backdrop-filter:blur(4px); box-shadow:0 2px 6px rgba(0,0,0,0.3);">98.4% Match</span>
+                        <div class="preview-thumb" id="previewThumb1" style="width: 100%; height: 100%; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                            <img id="previewImg1" src="" alt="Detected Photo" style="width:100%; height:100%; object-fit:cover; display:none;">
+                            <div id="previewPlaceholder1" style="color:#6B7280; font-size:0.85rem; text-align:center;">
+                                <span class="material-symbols-outlined" style="font-size:42px;">check_circle</span>
+                                <p style="margin-top:6px;">Face Clustered</p>
+                            </div>
+                            <div class="face-box" style="position:absolute; top:25%; left:25%; width:48%; height:52%; background:transparent !important; background-color:transparent !important; border:2.5px solid #10B981; border-radius:6px; pointer-events:none; box-shadow: 0 0 12px rgba(16,185,129,0.6);">
+                                <span class="face-box-tag" id="detectedFaceTag" style="position:absolute; top:-24px; left:0; background:#10B981; color:white; font-size:0.75rem; padding:2px 6px; border-radius:3px; font-weight:700; box-shadow:0 2px 6px rgba(0,0,0,0.4);">98.4%</span>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- Window 2: Processing (Active Inflight) -->
+                    <div class="preview-card" style="aspect-ratio: 4/3; min-height: 240px; border-radius: 14px; background: #0F172A; position: relative; overflow: hidden; border:1.5px solid #3B82F6;">
+                        <span class="preview-badge badge-processing" id="previewBadge2" style="position:absolute; top:12px; left:12px; z-index:10; background:#3B82F6; color:white; font-size:0.75rem; padding:3px 10px; border-radius:4px; font-weight:700;">PROCESSING</span>
+                        <div class="preview-thumb" id="inflightPreviewWrapper" style="width: 100%; height: 100%; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                            <img id="inflightImg" src="" alt="Current Processing Image" style="width:100%; height:100%; object-fit:cover; display:none;">
+                            <div id="inflightPlaceholder" style="color:#6B7280; display:flex; flex-direction:column; align-items:center;">
+                                <span class="material-symbols-outlined" style="font-size:42px;">photo_camera</span>
+                                <p style="margin-top:6px; font-size:0.85rem;">Inflight Image...</p>
+                            </div>
+                            <div class="scan-line"></div>
+                        </div>
+                    </div>
+
+                    <!-- Window 3: Queued Item 1 -->
+                    <div class="preview-card" style="aspect-ratio: 4/3; min-height: 240px; border-radius: 14px; background: #0F172A; position: relative; overflow: hidden;">
+                        <span class="preview-badge badge-queued" style="position:absolute; top:12px; left:12px; z-index:10; background:#F59E0B; color:white; font-size:0.75rem; padding:3px 10px; border-radius:4px; font-weight:700;">QUEUED</span>
+                        <div class="preview-thumb" id="previewThumb3" style="width: 100%; height: 100%; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                            <img id="previewImg3" src="" alt="Queued Photo 1" style="width:100%; height:100%; object-fit:cover; display:none;">
+                            <div id="previewPlaceholder3" style="color:#6B7280; font-size:0.85rem; text-align:center;">
+                                <span class="material-symbols-outlined" style="font-size:42px;">hourglass_top</span>
+                                <p style="margin-top:6px;">Next Asset</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Window 4: Queued Item 2 -->
+                    <div class="preview-card" style="aspect-ratio: 4/3; min-height: 240px; border-radius: 14px; background: #0F172A; position: relative; overflow: hidden;">
+                        <span class="preview-badge badge-queued" style="position:absolute; top:12px; left:12px; z-index:10; background:#6B7280; color:white; font-size:0.75rem; padding:3px 10px; border-radius:4px; font-weight:700;">QUEUED</span>
+                        <div class="preview-thumb" id="previewThumb4" style="width: 100%; height: 100%; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                            <img id="previewImg4" src="" alt="Queued Photo 2" style="width:100%; height:100%; object-fit:cover; display:none;">
+                            <div id="previewPlaceholder4" style="color:#6B7280; font-size:0.85rem; text-align:center;">
+                                <span class="material-symbols-outlined" style="font-size:42px;">pending</span>
+                                <p style="margin-top:6px;">In Queue</p>
+                            </div>
+                        </div>
+                    </div>
+
+
+                </div>
+
+            </div>
+
+
+        </section>
+
+        <!-- ============================================================
+             FOOTER
+        ============================================================= -->
+
+        <footer class="footer">
+
+            <img src="media/Footer.png" alt="Technologia Team" class="footer-image">
+
+            <p>
+
+                &copy; Copyright 2026, Developed by <strong>Technologia</strong>
+
+            </p>
+
+        </footer>
+
+    </main>
+
+    <script src="scripts/script.js?v=20260813_03"></script>
+
+
+
+
+
+
+
+</body>
+
+</html>

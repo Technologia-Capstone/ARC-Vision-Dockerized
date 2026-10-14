@@ -1,0 +1,70 @@
+<!--
+  Application initialization splash and cold-start screen for A.R.C. Vision.
+  Renders animated intro branding while performing background server health polling.
+  Handles automatic client redirection once backend services and models are fully initialized.
+-->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A.R.C. Vision - Initializing</title>
+    <meta name="description" content="A.R.C. Vision Loading Screen">
+
+    <link rel="stylesheet" href="css/styles.css?v=20260725_14" type="text/css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inclusive+Sans:ital@0;1&family=Inknut+Antiqua:wght@500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+    <link rel="shortcut icon" href="media/favicon.ico">
+</head>
+
+<body class="loading-page">
+
+    <div class="loading-standalone-overlay">
+        <div class="intro-splash-content">
+
+            <!-- Arc Reactor Video Container -->
+            <div class="intro-reactor-container">
+                <div class="intro-reactor-frame">
+                    <video class="intro-reactor-video" src="media/Intro Logo.mp4?v=20260813_04" autoplay muted defaultmuted loop playsinline webkit-playsinline disablePictureInPicture controlsList="nodownload nofullscreen noremoteplayback" disableRemotePlayback oncontextmenu="return false;" style="pointer-events: none;">
+                        <source src="media/Intro Logo.mp4?v=20260813_04" type="video/mp4">
+                        <img src="media/Logo.png" alt="A.R.C. Vision Reactor">
+                    </video>
+                </div>
+            </div>
+
+            <!-- Title & Subtitle -->
+            <h1 class="intro-brand-title">A.R.C. VISION</h1>
+            <p class="intro-brand-subtitle">Automated Recognition and Clustering</p>
+
+            <!-- Progress Section -->
+            <div class="intro-progress-wrapper">
+                <div class="intro-progress-text-row">
+                    <span class="intro-status-text" id="introStatusText">INITIALIZING LOCAL ENGINE ...</span>
+                    <span class="intro-percent-counter" id="introPercentCounter">0%</span>
+                </div>
+
+                <div class="intro-progress-track">
+                    <div class="intro-progress-fill" id="introProgressFill"></div>
+                </div>
+
+                <div class="intro-secure-badge">
+                    <span class="material-symbols-outlined">shield</span> SECURE LAYER 1
+                </div>
+            </div>
+
+            <!-- Footer Branding -->
+            <div class="intro-footer-branding">
+                <img src="media/Footer.png" alt="Technologia Logo" class="intro-footer-logo">
+                <p class="intro-company-tag">DEVELOPED BY TECHNOLOGIA PVT LTD</p>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="scripts/script.js?v=20260813_03"></script>
+</body>
+
+</html>

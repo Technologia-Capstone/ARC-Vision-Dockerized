@@ -1,0 +1,482 @@
+<!--
+  3-Tier face cluster explorer and identity management dashboard for A.R.C. Vision.
+  Renders event lists, circular cluster avatars, and full-resolution photo galleries with interactive lightboxes.
+  Handles cluster merging, duplicate resolution, manual photo additions, relocations, and flagging operations.
+-->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Clusters - A.R.C. Vision</title>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A.R.C Vision Entity Clusters">
+
+    <link rel="stylesheet" href="css/styles.css?v=20260725_06" type="text/css">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inclusive+Sans:ital@0;1&family=Inknut+Antiqua:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Material Symbols -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+
+    <link rel="shortcut icon" href="media/favicon.ico">
+    <link rel="icon" href="media/favicon.ico">
+
+    <script>
+        (function() {
+            try {
+                var nav = performance.getEntriesByType('navigation');
+                var isReload = (nav && nav.length > 0) ? (nav[0].type === 'reload') : (window.performance && window.performance.navigation && window.performance.navigation.type === 1);
+                var isFresh = !sessionStorage.getItem('app_session_active');
+                if (isReload || isFresh) {
+                    var currentUrl = window.location.pathname.split('/').pop() + window.location.search + window.location.hash;
+                    sessionStorage.setItem('post_loading_redirect', currentUrl || 'index.html');
+                    window.location.replace('loading.html');
+                }
+            } catch (e) {}
+        })();
+    </script>
+</head>
+
+
+
+
+<body>
+
+    <!-- ============================================================
+         SIDEBAR
+    ============================================================= -->
+
+    <aside class="sidebar">
+
+        <!-- Sidebar Header -->
+        <div class="sidebar-header">
+
+            <img src="media/Logo.png" alt="A.R.C. Vision Logo" class="logo">
+
+            <h1>A.R.C. Vision</h1>
+
+            <p>
+                AUTOMATED RECOGNITION AND<br>
+                CLUSTERING
+            </p>
+
+        </div>
+
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar-nav">
+
+            <ul>
+
+                <li>
+                    <a href="index.html">
+                        <span class="material-symbols-outlined">dashboard</span>
+                        Dashboard
+                    </a>
+                </li>
+
+                <li>
+                    <a href="photo_library.html">
+                        <span class="material-symbols-outlined">photo_library</span>
+                        Photo Library
+                    </a>
+                </li>
+
+                <li>
+                    <a href="processing.html">
+                        <span class="material-symbols-outlined">memory</span>
+                        Processing
+                    </a>
+                </li>
+
+                <li>
+                    <a href="clusters.html" class="active">
+                        <span class="material-symbols-outlined">groups</span>
+                        Clusters
+                    </a>
+                </li>
+
+                <li>
+                    <a href="results.html">
+                        <span class="material-symbols-outlined">analytics</span>
+                        Diagnostics
+                    </a>
+                </li>
+
+            </ul>
+
+        </nav>
+
+        <!-- Sidebar Action Buttons -->
+        <div class="sidebar-actions">
+
+            <button id="uploadPhotosBtn">
+                <span class="material-symbols-outlined">upload</span>
+                Upload Photos
+            </button>
+
+
+            <button id="exportPhotosBtn">
+                <span class="material-symbols-outlined">download</span>
+                Export
+            </button>
+
+        </div>
+
+    </aside>
+
+    <!-- ============================================================
+         MAIN CONTENT
+    ============================================================= -->
+
+    <main class="main-content">
+
+        <!-- ============================================================
+             TOP HEADER
+        ============================================================= -->
+
+        <header class="top-header">
+
+            <h2>A.R.C. Vision</h2>
+
+        </header>
+
+        <!-- ============================================================
+             CLUSTERS MAIN SECTION
+        ============================================================= -->
+
+        <!-- ============================================================
+             CLUSTERS MAIN SECTION
+        ============================================================= -->
+
+        <section class="clusters-section" style="padding: 24px;">
+
+            <!-- TITLE & BREADCRUMB CONTROLS HEADER BAR -->
+            <div class="clusters-header-bar" style="display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 24px; flex-wrap: wrap;">
+
+                <div class="header-left-group" style="display: flex; align-items: center; gap: 12px;">
+                    <button class="back-btn" id="backToFoldersBtn" style="display: none; background: #FFFFFF; border: 1px solid #CBD5E1; color: #0E2A52; border-radius: 8px; padding: 6px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                        <span class="material-symbols-outlined" style="font-size: 20px;">arrow_back</span>
+                    </button>
+                    <div>
+                        <div class="cluster-breadcrumbs" id="clusterBreadcrumbs" style="font-size: 0.85rem; color: #64748B; margin-bottom: 2px;">
+                            <span class="breadcrumb-item active" id="bcLevel1" style="color: #183A6B; font-weight: 600; cursor: pointer;">Clusters</span>
+                            <span id="bcSep1" style="display:none; margin: 0 4px; color: #94A3B8;">/</span>
+                            <span class="breadcrumb-item" id="bcLevel2" style="display:none; cursor: pointer; color: #183A6B; font-weight: 600;">Event</span>
+                            <span id="bcSep2" style="display:none; margin: 0 4px; color: #94A3B8;">/</span>
+                            <span class="breadcrumb-item" id="bcLevel3" style="display:none; color: #0E2A52; font-weight: 700;">Person</span>
+                        </div>
+                        <h1 class="clusters-main-title" id="clustersPageTitle" style="margin: 0; font-size: 2rem; font-weight: 700; color: #0E2A52;">Event Clusters</h1>
+                    </div>
+                    <span class="folder-badge-tag" id="folderBadgeTag" style="background: #E2E8F0; color: #475569; padding: 4px 12px; border-radius: 12px; font-size: 0.85rem; font-weight: 600;">0 Events</span>
+                </div>
+
+                <!-- Search bar across all levels -->
+                <div class="cluster-search-container" style="flex: 1; max-width: 320px; margin: 0 8px;">
+                    <div style="position: relative; display: flex; align-items: center; width: 100%;">
+                        <span class="material-symbols-outlined" style="position: absolute; left: 12px; color: #64748B; font-size: 18px; pointer-events: none; z-index: 2;">search</span>
+                        <input type="text" id="clusterSearchInput" placeholder="Search by event, person, or folder..." style="width: 100%; background: #FFFFFF; border: 1px solid #CBD5E1; border-radius: 8px; padding: 8px 12px 8px 38px; color: #0F172A; font-size: 0.85rem; outline: none; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                    </div>
+                </div>
+
+                <!-- Action controls -->
+                <div class="header-right-group" id="headerActionGroup" style="display: flex; gap: 8px; align-items: center;">
+
+                    <!-- Top-Level Only Buttons -->
+                    <div id="topLevelActions" style="display: flex; gap: 8px;">
+                        <button class="action-btn-outline" id="deleteSelectedEventsBtn" style="color: #DC2626; border: 1px solid #FCA5A5; background: #FFFFFF; padding: 8px 14px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                            <span class="material-symbols-outlined" style="font-size: 18px; color: #DC2626;">delete</span>
+                            Delete Selected Event
+                        </button>
+
+                        <button class="action-btn-outline" id="deleteAllDataBtn" style="color: #D97706; border: 1px solid #FCD34D; background: #FFFFFF; padding: 8px 14px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                            <span class="material-symbols-outlined" style="font-size: 18px; color: #D97706;">delete_forever</span>
+                            Delete All Storage Data
+                        </button>
+                    </div>
+
+                    <!-- Select Checkboxes Toggle -->
+                    <button class="action-btn-outline" id="toggleSelectBtn" style="background: #FFFFFF; border: 1px solid #183A6B; color: #183A6B; padding: 8px 14px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                        <span class="material-symbols-outlined" style="font-size: 18px; color: #183A6B;">check_box</span>
+                        <span id="toggleSelectText">Select</span>
+                    </button>
+
+                    <!-- Sort by Confidence -->
+                    <button class="action-btn-outline" id="sortConfidenceBtn" style="display: none; background: #FFFFFF; border: 1px solid #183A6B; color: #183A6B; padding: 8px 14px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; align-items: center; gap: 6px;">
+                        <span class="material-symbols-outlined" style="font-size: 18px;">filter_list</span>
+                        Sort by Confidence
+                    </button>
+
+                    <!-- Merge Clusters Button -->
+                    <button class="action-btn-outline" id="mergeClustersBtn" style="display: none; background: #FFFFFF; border: 1px solid #183A6B; color: #183A6B; padding: 8px 14px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; align-items: center; gap: 6px;">
+                        <span class="material-symbols-outlined" style="font-size: 18px;">call_merge</span>
+                        Merge Clusters
+                    </button>
+
+                    <!-- Tier 3 Specific Action Controls -->
+                    <div id="tier3Actions" style="display: none; gap: 8px; align-items: center;">
+                        <input type="file" id="tier3FileInput" multiple accept="image/*" style="display: none;">
+
+                        <button class="action-btn-outline" id="addPhotosMenuBtn" style="background: #FFFFFF; border: 1px solid #183A6B; color: #183A6B; padding: 8px 14px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                            <span class="material-symbols-outlined" style="font-size: 18px; color: #183A6B;">add_photo_alternate</span>
+                            Add Photos
+                        </button>
+
+                        <button class="action-btn-outline" id="copyToClustersBtn" style="display: none; background: #EFF6FF; border: 1px solid #3B82F6; color: #1D4ED8; padding: 8px 14px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; align-items: center; gap: 6px;">
+                            <span class="material-symbols-outlined" style="font-size: 18px; color: #3B82F6;">folder_copy</span>
+                            <span id="copyToClustersText">Add to Cluster(s)</span>
+                        </button>
+
+                        <button class="action-btn-outline" id="deleteSelectedPhotosBtn" style="display: none; color: #DC2626; border: 1px solid #FCA5A5; background: #FEF2F2; padding: 8px 14px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; align-items: center; gap: 6px;">
+                            <span class="material-symbols-outlined" style="font-size: 18px; color: #DC2626;">delete</span>
+                            <span id="deleteSelectedPhotosText">Delete Selected</span>
+                        </button>
+                    </div>
+
+                    <!-- Merge Mode Actions -->
+                    <button class="btn-primary-action" id="doneMergeBtn" style="display: none; background: #10B981; color: #FFFFFF; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; align-items: center; gap: 6px;">
+                        <span class="material-symbols-outlined" style="font-size: 18px;">check</span> Done
+                    </button>
+                    <button class="action-btn-outline" id="cancelMergeBtn" style="display: none; background: #FFFFFF; border: 1px solid #CBD5E1; color: #64748B; padding: 8px 14px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer;">
+                        Cancel
+                    </button>
+
+                </div>
+
+            </div>
+
+            <!-- VIEW 1: TIER 1 - EVENT CLUSTERS LISTING VIEW -->
+            <div class="clusters-view" id="clustersListingView">
+                <div class="folder-grid" id="eventsGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 320px)); gap: 24px;">
+                    <!-- Populated dynamically by JS -->
+                </div>
+            </div>
+
+            <!-- VIEW 2: TIER 2 - FACE CLUSTERS INSIDE EVENT -->
+            <div class="clusters-view" id="clusterDetailView" style="display: none;">
+                <div class="merge-instruction-banner" id="mergeInstructionBanner" style="display: none; background: #EFF6FF; border: 1px solid #BFDBFE; color: #1E40AF; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 0.9rem;">
+                    <span class="material-symbols-outlined icon-info" style="vertical-align: middle; margin-right: 6px;">info</span>
+                    <span>Select the face clusters you want to merge together, then click <strong>Done</strong>.</span>
+                </div>
+
+                <div class="entity-grid" id="entityGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 260px)); gap: 20px;">
+                    <!-- Populated dynamically by JS -->
+                </div>
+                <!-- Tier 2 Pagination / Infinite Scroll Control Bar -->
+                <div id="tier2PaginationControl" style="margin-top: 32px; padding: 20px 0; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;">
+                    <div id="tier2PaginationInfo" style="font-size: 0.9rem; font-weight: 600; color: #64748B;"></div>
+                    <div style="display: flex; gap: 12px; align-items: center; justify-content: center; flex-wrap: wrap;">
+                        <button id="tier2LoadMoreBtn" style="display: none; background: #FFFFFF; border: 1.5px solid #183A6B; color: #183A6B; padding: 10px 20px; border-radius: 10px; font-weight: 700; font-size: 0.88rem; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                            Load More Clusters (+48)
+                        </button>
+                        <button id="tier2ShowAllBtn" style="display: none; background: #183A6B; border: none; color: #FFFFFF; padding: 10px 20px; border-radius: 10px; font-weight: 700; font-size: 0.88rem; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 2px 6px rgba(24,58,107,0.25);">
+                            Show All Clusters
+                        </button>
+                    </div>
+                    <div id="tier2Sentinel" style="height: 20px; width: 100%; visibility: hidden;"></div>
+                </div>
+            </div>
+
+            <!-- VIEW 3: TIER 3 - PERSON CLUSTER ASSOCIATED IMAGES -->
+            <div class="clusters-view" id="personImagesView" style="display: none;">
+                <div class="photo-grid" id="personImagesGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 240px)); gap: 16px;">
+                    <!-- Populated dynamically by JS -->
+                </div>
+                <!-- Tier 3 Pagination / Infinite Scroll Control Bar -->
+                <div id="tier3PaginationControl" style="margin-top: 32px; padding: 20px 0; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;">
+                    <div id="tier3PaginationInfo" style="font-size: 0.9rem; font-weight: 600; color: #64748B;"></div>
+                    <div style="display: flex; gap: 12px; align-items: center; justify-content: center; flex-wrap: wrap;">
+                        <button id="tier3LoadMoreBtn" style="display: none; background: #FFFFFF; border: 1.5px solid #183A6B; color: #183A6B; padding: 10px 20px; border-radius: 10px; font-weight: 700; font-size: 0.88rem; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                            Load More Photos (+48)
+                        </button>
+                        <button id="tier3ShowAllBtn" style="display: none; background: #183A6B; border: none; color: #FFFFFF; padding: 10px 20px; border-radius: 10px; font-weight: 700; font-size: 0.88rem; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 2px 6px rgba(24,58,107,0.25);">
+                            Show All Photos
+                        </button>
+                    </div>
+                    <div id="tier3Sentinel" style="height: 20px; width: 100%; visibility: hidden;"></div>
+                </div>
+            </div>
+
+        </section>
+
+
+
+
+        <!-- ============================================================
+             FOOTER
+        ============================================================= -->
+
+        <footer class="footer">
+
+            <img src="media/Footer.png" alt="Technologia Team" class="footer-image">
+
+            <p>
+
+                &copy; Copyright 2026, Developed by <strong>Technologia</strong>
+
+            </p>
+
+        </footer>
+
+    <!-- PHOTO LIGHTBOX MODAL -->
+    <div class="lightbox-modal" id="lightboxModal">
+        <div class="lightbox-overlay" id="lightboxOverlay"></div>
+        <div class="lightbox-content">
+            <button class="lightbox-close" id="lightboxClose" aria-label="Close modal">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+            <div class="lightbox-body">
+                <div class="lightbox-image-container">
+                    <button class="lightbox-nav-btn lightbox-prev-btn" id="lightboxPrevBtn" aria-label="Previous Image">
+                        <span class="material-symbols-outlined">chevron_left</span>
+                    </button>
+
+                    <div class="lightbox-img-wrapper" id="lightboxImgWrapper">
+                        <span class="material-symbols-outlined placeholder-icon">image</span>
+                    </div>
+
+                    <button class="lightbox-nav-btn lightbox-next-btn" id="lightboxNextBtn" aria-label="Next Image">
+                        <span class="material-symbols-outlined">chevron_right</span>
+                    </button>
+
+                    <div class="lightbox-counter-badge" id="lightboxCounterBadge">
+                        <span class="material-symbols-outlined" style="font-size:14px;">collections</span>
+                        <span id="lightboxCounterText">1 of 1</span>
+                    </div>
+                </div>
+                <div class="lightbox-info">
+                    <div class="lightbox-header">
+                        <span class="card-badge badge-clustered" id="modalBadge">CLUSTERED</span>
+                        <h3 id="modalTitle">Asset</h3>
+                    </div>
+                    <div class="lightbox-details">
+                        <div class="detail-row">
+                            <span>Status:</span>
+                            <strong id="modalStatus">Clustered</strong>
+                        </div>
+                        <div class="detail-row">
+                            <span>Original Location:</span>
+                            <strong id="modalLocation"
+                                style="font-size:0.8rem; word-break:break-all;">input/photo.jpg</strong>
+                        </div>
+                        <div class="detail-row">
+                            <span>Date Added:</span>
+                            <strong id="modalDate">2026-07-22</strong>
+                        </div>
+                        <div class="detail-row">
+                            <span>Face Cluster:</span>
+                            <strong id="modalFaceCluster">Unknown</strong>
+                        </div>
+                    </div>
+                    <div class="lightbox-actions">
+                        <button class="btn-primary" id="modalFlagBtn" style="width:100%; padding:12px; font-size:0.95rem; font-weight:600; border-radius:8px; display:flex; align-items:center; justify-content:center; gap:8px;">
+                            <span class="material-symbols-outlined">flag</span>
+                            <span id="modalFlagText">Flag Asset</span>
+                        </button>
+                        <button class="action-btn-outline" id="modalMoveBtn" style="width:100%; border:1.5px solid #3B82F6; color:#3B82F6; border-radius:8px; padding:12px; background:transparent; font-size:0.95rem; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;">
+                            <span class="material-symbols-outlined">drive_file_move</span>
+                            Move to Face Folder
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+        <!-- INTERACTIVE MOVE TO FACE CLUSTER MODAL -->
+        <div class="custom-modal-overlay" id="moveClusterModalOverlay"
+            style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.82); backdrop-filter: blur(8px); z-index: 99999; align-items: center; justify-content: center;">
+            <div class="custom-modal-box move-cluster-modal-box">
+
+                <!-- MODAL HEADER -->
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px;">
+                    <div>
+                        <h3
+                            style="margin: 0; font-size: 1.35rem; font-weight: 700; color: #3B82F6; display: flex; align-items: center; gap: 10px;">
+                            <span class="material-symbols-outlined" style="font-size: 28px;">drive_file_move</span> Move to Face Cluster
+                        </h3>
+                        <p style="font-size: 0.88rem; color: #9CA3AF; margin: 6px 0 0 0;">Compare reference photo on the left with target face clusters on the right:</p>
+                    </div>
+                    <button id="closeMoveClusterModalBtn"
+                        style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #9CA3AF; cursor: pointer; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease;">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+
+                <!-- SIDE BY SIDE PANELS -->
+                <div class="move-modal-panels-container">
+                    
+                    <!-- LEFT PANEL: REFERENCE IMAGE BEING MOVED -->
+                    <div class="move-modal-left-panel">
+                        <div class="move-modal-left-header">
+                            <div class="move-modal-left-title">
+                                <span class="material-symbols-outlined" style="color: #3B82F6; font-size: 20px;">image</span> Reference Photo
+                            </div>
+                            <span id="moveModalImageStatus" class="card-badge badge-flagged">FLAGGED</span>
+                        </div>
+
+                        <div class="move-modal-ref-wrapper">
+                            <img id="moveModalRefImg" src="" alt="Reference Photo Being Moved" class="move-modal-ref-img">
+                        </div>
+
+                        <div class="move-modal-ref-meta">
+                            <div class="move-modal-ref-filename" id="moveModalRefFilename">Photo_001.jpg</div>
+                            <div id="moveModalRefEvent" style="font-size: 0.78rem; color: #64748B;">Event: Main Event</div>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT PANEL: TARGET FACE CLUSTERS SELECTION -->
+                    <div class="move-modal-right-panel">
+                        <div style="position: relative;">
+                            <span class="material-symbols-outlined"
+                                style="position: absolute; left: 14px; top: 12px; color: #64748B; font-size: 20px;">search</span>
+                            <input type="text" id="moveClusterSearchInput"
+                                placeholder="Search face cluster name, person number..."
+                                style="width: 100%; background: #0F172A; border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; padding: 12px 14px 12px 42px; color: #fff; font-size: 0.95rem; outline: none; transition: border-color 0.2s ease;">
+                        </div>
+
+                        <div id="moveClusterList">
+                            <!-- Populated dynamically by script.js -->
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- MODAL FOOTER BUTTONS -->
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.1);">
+                    <button id="createNewClusterBtn"
+                        style="background: #10B981; color: #fff; border: none; padding: 10px 18px; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background 0.2s ease;">
+                        <span class="material-symbols-outlined" style="font-size: 20px;">add</span> Create New Face Cluster
+                    </button>
+                    <button id="cancelMoveClusterModalBtn"
+                        style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); color: #D1D5DB; padding: 10px 20px; border-radius: 8px; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: background 0.2s ease;">
+                        Cancel
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- AVATAR HOVER PREVIEW POPUP -->
+        <div id="avatarHoverPreviewTooltip" class="avatar-hover-preview-tooltip">
+            <div class="avatar-hover-preview-card">
+                <img id="avatarHoverPreviewImg" src="" alt="Face Preview">
+                <div id="avatarHoverPreviewTitle" class="avatar-hover-preview-title"></div>
+            </div>
+        </div>
+
+    <script src="scripts/script.js?v=20260813_03"></script>
+
+
+
+
+
+
+
+
+</body>
+
+</html>
