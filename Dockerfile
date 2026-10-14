@@ -21,7 +21,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY ["Source Code/Back End/requirements.txt", "/app/requirements.txt"]
 
+# Install CPU-only PyTorch before the remaining dependencies.
 RUN python -m pip install --upgrade pip setuptools wheel \
+    && python -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu \
     && python -m pip install -r requirements.txt
 
 COPY ["Source Code/Back End/", "/app/"]
