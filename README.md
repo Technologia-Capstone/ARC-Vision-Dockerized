@@ -32,7 +32,7 @@ Open a terminal and run:
 git clone YOUR_REPOSITORY_URL
 ```
 
-Replace `YOUR_REPOSITORY_URL` with the URL of the GitHub repository.
+Replace `[YOUR_REPOSITORY_URL](https://github.com/Technologia-Capstone/ARC-Vision-Dockerized)` with the URL of the GitHub repository.
 
 Navigate into the downloaded project folder:
 
