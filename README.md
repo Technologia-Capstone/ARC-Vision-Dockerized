@@ -29,10 +29,9 @@ Start Docker Desktop and wait until Docker is running.
 Open a terminal and run:
 
 ```bash
-git clone YOUR_REPOSITORY_URL
+git clone https://github.com/Technologia-Capstone/ARC-Vision-Dockerized
 ```
 
-Replace `[YOUR_REPOSITORY_URL](https://github.com/Technologia-Capstone/ARC-Vision-Dockerized)` with the URL of the GitHub repository.
 
 Navigate into the downloaded project folder:
 
